@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>PCB Engineering World Model — Neuro-Symbolic EDA Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header & Control Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.75"/>
+          <path d="M7 8h4l2 3h4M7 16h5l2-3h3" stroke="#F43F5E" stroke-width="1.75" stroke-linecap="round"/>
+          <circle cx="7" cy="8" r="1.5" fill="#F59E0B"/>
+          <circle cx="17" cy="11" r="1.5" fill="#38BDF8"/>
+          <circle cx="7" cy="16" r="1.5" fill="#F59E0B"/>
+          <circle cx="17" cy="13" r="1.5" fill="#10B981"/>
+        </svg>
+        <div>
+          <div class="brand-title-row">
+            <h1>PCB World Model</h1>
+            <span class="rev-pill mono">REV 1</span>
+          </div>
+          <p class="subtitle">GATv2 Macro-Placer &middot; U-Net Critic &middot; Octilinear A* + DRC Loop</p>
+        </div>
+      </div>
+
+      <div class="toolbar-controls">
+        <label class="field-group" for="preset-select">
+          <span>Board Preset</span>
+          <select id="preset-select" aria-label="Board Preset"></select>
+        </label>
+
+        <label class="field-group slider-field" for="candidates-range">
+          <span>GNN Samples: <strong id="candidates-val" class="mono">8</strong></span>
+          <input type="range" id="candidates-range" min="2" max="12" step="1" value="8">
+        </label>
+
+        <label class="field-group slider-field" for="pace-range">
+          <span>Pace: <strong id="pace-val" class="mono">100ms</strong></span>
+          <input type="range" id="pace-range" min="0" max="250" step="25" value="100">
+        </label>
+
+        <div class="segmented" role="group" aria-label="Viewport Mode">
+          <button type="button" id="btn-view-2d" class="seg-btn active">2D CAD</button>
+          <button type="button" id="btn-view-3d" class="seg-btn">3D Stackup</button>
+        </div>
+
+        <button type="button" id="btn-run" class="btn-primary">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.34-5.89a1.5 1.5 0 0 0 0-2.54L6.3 2.84Z"/>
+          </svg>
+          <span>Run World Model</span>
+        </button>
+
+        <button type="button" id="btn-inspect-kicad" class="btn-secondary">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <path d="M7 6 3 10l4 4M13 6l4 4-4 4M11 4l-2 12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>.kicad_pcb</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <main class="workspace">
+      <!-- Left/Center Viewport + S_t Tensor Inspector -->
+      <section class="viewport-column">
+        <div class="canvas-toolbar">
+          <div class="layer-toggles" role="group" aria-label="PCB Layer Visibility">
+            <label class="layer-chip" data-layer="l1">
+              <input type="checkbox" id="chk-l1" checked>
+              <span class="swatch sw-l1"></span>
+              <span>F.Cu Top</span>
+            </label>
+            <label class="layer-chip" data-layer="l2">
+              <input type="checkbox" id="chk-l2" checked>
+              <span class="swatch sw-l2"></span>
+              <span>B.Cu Bot</span>
+            </label>
+            <label class="layer-chip" data-layer="vias">
+              <input type="checkbox" id="chk-vias" checked>
+              <span class="swatch sw-via"></span>
+              <span>Vias</span>
+            </label>
+            <label class="layer-chip" data-layer="courtyards">
+              <input type="checkbox" id="chk-courtyard" checked>
+              <span class="swatch sw-crtyd"></span>
+              <span>Courtyards</span>
+            </label>
+            <label class="layer-chip" data-layer="ratsnest">
+              <input type="checkbox" id="chk-ratsnest" checked>
+              <span class="swatch sw-rat"></span>
+              <span>Rat's Nest</span>
+            </label>
+            <label class="layer-chip" data-layer="congestion">
+              <input type="checkbox" id="chk-congestion" checked>
+              <span class="swatch sw-cong"></span>
+              <span>Congestion M<sub>t+1</sub></span>
+            </label>
+            <label class="layer-chip" data-layer="penalty">
+              <input type="checkbox" id="chk-penalty" checked>
+              <span class="swatch sw-pen"></span>
+              <span>DRC Penalty</span>
+            </label>
+          </div>
+
+          <div class="canvas-meta mono">
+            <span id="cursor-coords">X: 25.0mm &nbsp; Y: 25.0mm</span>
+            <button type="button" id="btn-reset-view" class="btn-ghost" title="Reset Zoom and Pan">Reset View</button>
+          </div>
+        </div>
+
+        <div class="canvas-stage" id="canvas-stage">
+          <canvas id="pcb-canvas"></canvas>
+          <div class="hud-status-pill" id="hud-pill">
+            <span class="dot idle" id="status-dot"></span>
+            <span id="status-text">Ready &middot; Select preset and run rollout</span>
+          </div>
+          <div class="hud-3d-controls" id="hud-3d-controls" hidden>
+            <label for="tilt-range">3D Tilt</label>
+            <input type="range" id="tilt-range" min="15" max="75" value="44">
+            <label for="yaw-range">Orbit</label>
+            <input type="range" id="yaw-range" min="-60" max="60" value="-24">
+          </div>
+        </div>
+
+        <!-- 7-Channel Spatial Tensor Strip S_t [7, 250, 250] + M_{t+1} -->
+        <section class="tensor-strip" aria-label="Spatial State Tensor Channels">
+          <div class="strip-header">
+            <h2>Spatial Tensor <code class="mono">S<sub>t</sub> [7, 250, 250]</code> &amp; Latent Field</h2>
+            <span class="strip-hint" id="overlay-label">Click any channel to solo-overlay on board</span>
+          </div>
+          <div class="tensor-grid" id="tensor-grid"></div>
+        </section>
+      </section>
+
+      <!-- Right Telemetry & Control Dock -->
+      <aside class="telemetry-dock">
+        <!-- Critic & Physical Metrics -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>World Model Telemetry</h2>
+            <span class="drc-badge neutral" id="drc-badge">IDLE</span>
+          </div>
+
+          <div class="critic-meter">
+            <div class="critic-row">
+              <span>Routability Critic <code class="mono">V(S<sub>t</sub>)</code></span>
+              <strong class="mono" id="val-critic">--</strong>
+            </div>
+            <progress id="critic-progress" max="100" value="0">0%</progress>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Routed Nets</span>
+              <strong class="kpi-value mono" id="val-nets">0 / 0</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">DRC Errors</span>
+              <strong class="kpi-value mono" id="val-drc">0</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">HPWL</span>
+              <strong class="kpi-value mono" id="val-hpwl">-- mm</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Wirelength</span>
+              <strong class="kpi-value mono" id="val-wire">-- mm</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Vias Placed</span>
+              <strong class="kpi-value mono" id="val-vias">0</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Rollout Pass</span>
+              <strong class="kpi-value mono" id="val-iter">0 / 5</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- Candidate Placement Leaderboard -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>GNN Candidate Leaderboard</h2>
+            <span class="mono muted-tag" id="cand-count-tag">K = 8</span>
+          </div>
+          <div class="table-wrap">
+            <table class="cand-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>V(S<sub>t</sub>)</th>
+                  <th>Score</th>
+                  <th>HPWL</th>
+                </tr>
+              </thead>
+              <tbody id="cand-tbody">
+                <tr><td colspan="4" class="empty-cell">Run pipeline to sample GNN placements</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Closed-Loop Neuro-Symbolic Execution Log -->
+        <section class="panel log-panel">
+          <div class="panel-header">
+            <h2>Closed-Loop Verifier Log</h2>
+            <button type="button" id="btn-clear-log" class="btn-ghost">Clear</button>
+          </div>
+          <ul class="event-log mono" id="event-log"></ul>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Native <dialog> for KiCad S-expression Export Inspection -->
+  <dialog id="kicad-dialog" class="kicad-dialog" aria-labelledby="kicad-dialog-title">
+    <div class="dialog-header">
+      <div>
+        <h2 id="kicad-dialog-title">Generated <code>output_clean.kicad_pcb</code></h2>
+        <p class="subtitle">Manufacturing-ready KiCad 8 S-expression export</p>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="btn-copy-kicad" class="btn-secondary">Copy</button>
+        <a id="btn-download-kicad" class="btn-primary" href="/api/export-kicad?download=1" download>Download</a>
+        <button type="button" id="btn-close-dialog" class="btn-ghost">Close</button>
+      </div>
+    </div>
+    <pre class="kicad-code mono" id="kicad-code"></pre>
+  </dialog>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

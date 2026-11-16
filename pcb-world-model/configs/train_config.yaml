@@ -1,0 +1,15 @@
+# Training Hyperparameters for GATv2 Macro-Placer & World Model U-Net
+placer_hidden_dim: 64
+placer_num_layers: 4
+placer_heads: 4
+placer_lr: 0.003
+placer_epochs: 25
+lambda_hpwl: 1.0
+lambda_overlap: 10.0
+lambda_bound: 20.0
+
+world_base_channels: 16
+world_lr: 0.001
+world_epochs: 20
+world_batch_size: 4
+seed: 42

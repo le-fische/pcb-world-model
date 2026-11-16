@@ -1,0 +1,16 @@
+torch>=2.1.0
+numpy>=1.26.0
+networkx>=3.2
+fastapi>=0.110.0
+uvicorn>=0.27.0
+websockets>=12.0
+pydantic>=2.6.0
+pytest>=8.0.0
+httpx>=0.27.0
+# Optional accelerators & native EDA tools (pure-Python/PyTorch fallbacks included):
+# pyyaml>=6.0
+# shapely>=2.0.0
+# rtree>=1.2.0
+# kiutils>=1.4.0
+# sexpdata>=1.0.2
+# torch-geometric>=2.5.0

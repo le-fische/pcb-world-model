@@ -1,0 +1,18 @@
+# Default 2-Layer PCB Engineering World Model Configuration
+board_width_mm: 50.0
+board_height_mm: 50.0
+grid_resolution_mm: 0.2
+snap_grid_mm: 0.5
+layers: 2
+clearance_mm: 0.15
+trace_width_mm: 0.25
+via_diameter_mm: 0.6
+via_drill_mm: 0.3
+edge_margin_mm: 1.5
+
+# Neural-Guided Router & Closed-Loop Inference Parameters
+alpha_congestion: 2.5
+beta_drc_penalty: 1.0
+gamma_via_cost: 6.0
+max_ripup_iterations: 5
+num_placement_candidates: 8
