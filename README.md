@@ -3,7 +3,7 @@
 **Closed-Loop Neuro-Symbolic Generative EDA, C++20 Octilinear Router, 8-Layer HDI, Multi-Zone Rigid-Flex $85\Omega$ PCIe Gen 4, Mixed-Signal $J_{\text{return}}$ & 3D PBR Workstation**
 
 - **Live Interactive Multi-Revision Workstation (GitHub Pages):** [https://le-fische.github.io/pcb-world-model/](https://le-fische.github.io/pcb-world-model/)
-- **Live Vercel Deployment:** [https://turbo-sequoia-rsc9fga.tmp.now](https://turbo-sequoia-rsc9fga.tmp.now)
+- **Deploy to Vercel (pre-configured via `vercel.json`):** [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/import?s=https%3A%2F%2Fgithub.com%2Fle-fische%2Fpcb-world-model) *(or run `npx vercel login && npx vercel --prod` locally)*
 - **Deep-Link Any Revision Directly:** [`#rev1`](https://le-fische.github.io/pcb-world-model/#rev1) · [`#rev2`](https://le-fische.github.io/pcb-world-model/#rev2) · [`#rev3`](https://le-fische.github.io/pcb-world-model/#rev3) · [`#rev4`](https://le-fische.github.io/pcb-world-model/#rev4) · [`#rev5`](https://le-fische.github.io/pcb-world-model/#rev5) · [`#rev6`](https://le-fische.github.io/pcb-world-model/#rev6) · [`#rev7`](https://le-fische.github.io/pcb-world-model/#rev7) · [`#rev8`](https://le-fische.github.io/pcb-world-model/#rev8) · [`#rev9`](https://le-fische.github.io/pcb-world-model/#rev9) · [`#rev10`](https://le-fische.github.io/pcb-world-model/#rev10) · [`#rev11`](https://le-fische.github.io/pcb-world-model/#rev11) · [`#rev12`](https://le-fische.github.io/pcb-world-model/#rev12) · [`#rev13`](https://le-fische.github.io/pcb-world-model/#rev13) · [`#rev14`](https://le-fische.github.io/pcb-world-model/#rev14) · [`#rev15`](https://le-fische.github.io/pcb-world-model/#rev15)
 
 ---
