@@ -8,10 +8,46 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./revisions_data.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.min.js"
+      }
+    }
+  </script>
 </head>
 <body>
   <div class="app-shell">
+    <!-- Global Revision Bar & Navigation (rev1 -> rev15) -->
+    <nav class="rev-ribbon-bar" id="rev-ribbon-bar" aria-label="PCB World Model Revisions">
+      <div class="rev-ribbon-left">
+        <span class="rev-ribbon-label">
+          <span class="rev-live-dot" aria-hidden="true"></span>
+          <span>Live Deployment</span>
+        </span>
+        <div class="rev-scroll-track" id="rev-pills-track" role="tablist" aria-label="Revisions List"></div>
+      </div>
+      <div class="rev-ribbon-right">
+        <div class="rev-mode-tabs" role="tablist" aria-label="View Modes">
+          <button type="button" class="nav-mode-btn active" data-mode="cad" id="tab-mode-cad">CAD Workstation</button>
+          <button type="button" class="nav-mode-btn" data-mode="dossier" id="tab-mode-dossier">Tech Dossier</button>
+          <button type="button" class="nav-mode-btn" data-mode="benchmarks" id="tab-mode-benchmarks">Benchmarks</button>
+          <button type="button" class="nav-mode-btn" data-mode="compare" id="tab-mode-compare">Compare Revisions</button>
+          <button type="button" class="nav-mode-btn" data-mode="llm" id="tab-mode-llm">Rev 15 LLM Studio</button>
+        </div>
+        <button type="button" class="nav-link-btn" id="btn-download-active-kicad" title="Download current KiCad board">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M8 2v9M4 8l4 4 4-4M2 13h12" stroke-linecap="round"/></svg>
+          <span>KiCad PCB</span>
+        </button>
+        <a class="nav-link-btn" id="repo-link" href="https://github.com/le-fische/pcb-world-model" target="_blank" rel="noopener noreferrer" title="View Source on GitHub">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </nav>
+
     <!-- Top Header & Control Bar -->
     <header class="topbar">
       <div class="brand">
@@ -26,9 +62,9 @@
         <div>
           <div class="brand-title-row">
             <h1>PCB World Model</h1>
-            <span class="rev-pill mono">REV 1</span>
+            <span class="rev-pill mono">REV 14</span>
           </div>
-          <p class="subtitle">GATv2 Macro-Placer &middot; U-Net Critic &middot; Octilinear A* + DRC Loop</p>
+          <p class="subtitle">Rigid-Flex 85&Omega; PCIe Gen 4 &amp; PDN &middot; REV 13 Mixed-Signal J_return &amp; 3D EM &middot; REV 12 8L HDI &middot; REV 11 Import &middot; REV 10 DFM/DFA &middot; REV 9 PBR 3D &middot; C++20</p>
         </div>
       </div>
 
@@ -36,6 +72,16 @@
         <label class="field-group" for="preset-select">
           <span>Board Preset</span>
           <select id="preset-select" aria-label="Board Preset"></select>
+        </label>
+
+        <label class="field-group" for="stackup-select">
+          <span>Stackup</span>
+          <select id="stackup-select" aria-label="Copper Stackup">
+            <option value="2">2-Layer (F/B)</option>
+            <option value="4">4-Layer HDI</option>
+            <option value="6">6-Layer HDI</option>
+            <option value="8">8-Layer HDI (2+4+2)</option>
+          </select>
         </label>
 
         <label class="field-group slider-field" for="candidates-range">
@@ -48,9 +94,10 @@
           <input type="range" id="pace-range" min="0" max="250" step="25" value="100">
         </label>
 
-        <div class="segmented" role="group" aria-label="Viewport Mode">
-          <button type="button" id="btn-view-2d" class="seg-btn active">2D CAD</button>
-          <button type="button" id="btn-view-3d" class="seg-btn">3D Stackup</button>
+        <div class="segmented viewport-tabs" role="tablist" aria-label="Viewport Mode">
+          <button type="button" id="btn-view-2d" class="seg-btn active" role="tab" aria-selected="true" tabindex="0">2D CAD</button>
+          <button type="button" id="btn-view-3d" class="seg-btn" role="tab" aria-selected="false" tabindex="-1">3D PBR</button>
+          <button type="button" id="btn-view-schematic" class="seg-btn" role="tab" aria-selected="false" tabindex="-1">Schematic</button>
         </div>
 
         <button type="button" id="btn-run" class="btn-primary">
@@ -58,6 +105,21 @@
             <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.34-5.89a1.5 1.5 0 0 0 0-2.54L6.3 2.84Z"/>
           </svg>
           <span>Run World Model</span>
+        </button>
+
+        <button type="button" id="btn-open-silicon" class="btn-secondary">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <rect x="5" y="5" width="10" height="10" rx="1.5"/>
+            <path d="M8 2v3M12 2v3M8 15v3M12 15v3M2 8h3M2 12h3M15 8h3M15 12h3" stroke-linecap="round"/>
+          </svg>
+          <span>Silicon &amp; RTL</span>
+        </button>
+
+        <button type="button" id="btn-open-library" class="btn-secondary">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h3.2l1.6 1.6h4.2A1.5 1.5 0 0 1 16 7.1v7.4A1.5 1.5 0 0 1 14.5 16h-9A1.5 1.5 0 0 1 4 14.5V5.5Z" stroke-linejoin="round"/>
+          </svg>
+          <span>Library &amp; Import</span>
         </button>
 
         <button type="button" id="btn-inspect-kicad" class="btn-secondary">
@@ -69,44 +131,176 @@
       </div>
     </header>
 
-    <!-- Main Workspace Grid -->
+    <!-- Prompt-to-PCB Composer & Turnkey PCBA Manufacturing Bar -->
+    <!-- Revision Hero Summary Banner -->
+    <section class="rev-hero-banner" id="rev-hero-banner" aria-label="Active Revision Dossier Summary">
+      <div>
+        <div class="rev-hero-title-row">
+          <span class="rev-hero-tag mono" id="hero-rev-id">REV 14</span>
+          <h2 class="rev-hero-title" id="hero-rev-title">Revision 14 — Multi-Zone Rigid-Flex Polyimide, 85&Omega; PCIe Gen 4 &amp; Under-BGA PDN</h2>
+          <span class="rev-hero-status" id="hero-rev-status">Active in Repo</span>
+        </div>
+        <p class="rev-hero-subtitle" id="hero-rev-subtitle">Rigid FR4 + Cross-Hatched Flex + Coupled 85&Omega; PCIe Gen 4 Router + Skew Matching (&le;0.125mm) + PDN Inductance Rip-Up (0.92nH Under-BGA)</p>
+      </div>
+      <div class="rev-hero-metrics" id="hero-metrics-strip">
+        <div class="metric-pill">
+          <span class="metric-pill-label">Score</span>
+          <span class="metric-pill-val gold" id="hero-metric-score">99.29</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-pill-label">Nets</span>
+          <span class="metric-pill-val green" id="hero-metric-nets">19/19</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-pill-label">Vias</span>
+          <span class="metric-pill-val" id="hero-metric-vias">81</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-pill-label">Runtime</span>
+          <span class="metric-pill-val cyan" id="hero-metric-time">1.49s</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-pill-label">Layers</span>
+          <span class="metric-pill-val" id="hero-metric-layers">8L Flex</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-pill-label">DRC</span>
+          <span class="metric-pill-val green" id="hero-metric-drc">0 Clean</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Workstation Mode Panels -->
+    <div id="panel-cad" class="view-mode-panel active" style="padding:0;max-width:none;width:100%;flex:1;display:flex;flex-direction:column;">
+    <section class="prompt-dock" aria-label="Natural Language PCB Synthesizer and Manufacturing Export">
+      <form id="prompt-form" class="prompt-bar" action="/api/compose" method="POST" novalidate>
+        <div class="prompt-input-group">
+          <label for="prompt-input" class="prompt-label">Hardware Prompt</label>
+          <input
+            type="text"
+            id="prompt-input"
+            name="prompt"
+            minlength="3"
+            autocomplete="off"
+            enterkeyhint="go"
+            placeholder="Describe any board: e.g. 26x26mm 0.8mm wearable OLED keychain with ESP32-C3FN4, USB-C, MCP73831, LIS3DH"
+            aria-describedby="prompt-error"
+            required
+          >
+          <span id="prompt-error" class="prompt-error" role="status" aria-live="polite"></span>
+        </div>
+
+        <div class="prompt-presets" role="group" aria-label="Example Hardware Prompts">
+          <button type="button" class="chip-btn" data-prompt="Need a custom 8-channel high-speed WS2812 + hardware quadrature encoder controller that talks over SPI to an ESP32-C3; no single off-the-shelf IC exists">B9: FPGA + Verilog Co-Design</button>
+          <button type="button" class="chip-btn" data-prompt="26x26mm 0.8mm single-sided keep_back_flat wearable OLED keychain with ESP32-C3FN4 40MHz XTAL USB-C 5.1k CC MCP73831 100mA AP2112K LIS3DH SSD1306 2 corner 2.0mm holes">B6: Wearable 26x26</button>
+          <button type="button" class="chip-btn" data-prompt="Build me a small wireless wearable keychain with motion wake-up, battery charging, and mini display">B7: Vague Wearable</button>
+          <button type="button" class="chip-btn" data-prompt="Fit a 4-channel 10A SPDT relay controller with optocouplers and screw terminals inside a 25x25mm 2-layer enclosure">B8: Impossible 25x25</button>
+          <button type="button" class="chip-btn" data-prompt="RP2040 sensor controller with I2C IMU, 3.3V LDO, 2 LEDs, and USB-C">RP2040 IMU</button>
+        </div>
+
+        <div class="prompt-actions">
+          <label class="gate-toggle" for="chk-preflight-gate" title="Inspect area utilization and ask missing constraints before routing">
+            <input type="checkbox" id="chk-preflight-gate" switch checked>
+            <span>Pre-Flight Gate</span>
+          </label>
+          <button type="button" id="btn-negotiate" class="btn-secondary">Check Constraints</button>
+          <button type="submit" id="btn-prompt-run" class="btn-primary">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M10 3v14M3 10h14" stroke-linecap="round"/>
+            </svg>
+            <span>Synthesize &amp; Route</span>
+          </button>
+          <a id="btn-download-step" class="btn-secondary" href="/api/export-step?download=1" download="assembly.step">Download .STEP</a>
+          <a id="btn-download-dfm" class="btn-secondary" href="/api/export-dfm-report?download=1" download="dfm_report.md">Download DFM.md</a>
+          <a id="btn-download-bom" class="btn-secondary" href="/api/export-bom?download=1" download="bom.csv">Download BOM.csv</a>
+          <a id="btn-download-cpl" class="btn-secondary" href="/api/export-cpl?download=1" download="positions.csv">Download CPL.csv</a>
+        </div>
+      </form>
+    </section>
+
+    <!-- Main 3-Column Pro EDA Workstation Grid -->
     <main class="workspace">
-      <!-- Left/Center Viewport + S_t Tensor Inspector -->
+      <!-- Left Dock: Solder Mask Finish & Project Netlist/Component Explorer -->
+      <aside class="explorer-dock" id="explorer-panel" aria-label="Project Explorer and Solder Mask Finish">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Solder Mask Finish</h2>
+            <span class="mono muted-tag" id="mask-theme-label">KiCad Green</span>
+          </div>
+          <div class="mask-swatches" role="radiogroup" aria-label="Solder Mask Theme">
+            <button type="button" class="mask-swatch-btn active" data-mask="green" aria-checked="true" role="radio" aria-label="KiCad Classic Green"><span class="mask-dot mask-green"></span>Green</button>
+            <button type="button" class="mask-swatch-btn" data-mask="black" aria-checked="false" role="radio" aria-label="Matte Black"><span class="mask-dot mask-black"></span>Black</button>
+            <button type="button" class="mask-swatch-btn" data-mask="blue" aria-checked="false" role="radio" aria-label="Royal Blue"><span class="mask-dot mask-blue"></span>Blue</button>
+            <button type="button" class="mask-swatch-btn" data-mask="red" aria-checked="false" role="radio" aria-label="Crimson Red"><span class="mask-dot mask-red"></span>Red</button>
+            <button type="button" class="mask-swatch-btn" data-mask="white" aria-checked="false" role="radio" aria-label="Arctic White"><span class="mask-dot mask-white"></span>White</button>
+          </div>
+        </section>
+
+        <section class="panel explorer-panel-grow">
+          <div class="panel-header">
+            <h2>Project Explorer</h2>
+            <button type="button" id="btn-clear-selection" class="btn-ghost" hidden>Clear Filter</button>
+          </div>
+          <label for="explorer-search" class="visually-hidden">Filter components and nets</label>
+          <input type="search" id="explorer-search" class="explorer-search" placeholder="Filter U1, R1, I2C_SDA, GND...">
+          <div class="explorer-section-label">Components (<span id="explorer-comp-count">0</span>)</div>
+          <ul class="explorer-list" id="explorer-comps-list"></ul>
+          <div class="explorer-section-label">Routable Nets (<span id="explorer-net-count">0</span>)</div>
+          <ul class="explorer-list" id="explorer-nets-list"></ul>
+        </section>
+      </aside>
+
+      <!-- Center Viewport + S_t Tensor Inspector -->
       <section class="viewport-column">
         <div class="canvas-toolbar">
           <div class="layer-toggles" role="group" aria-label="PCB Layer Visibility">
-            <label class="layer-chip" data-layer="l1">
-              <input type="checkbox" id="chk-l1" checked>
+            <label class="layer-chip" data-layer="l1" for="chk-l1">
+              <input type="checkbox" id="chk-l1" switch checked>
               <span class="swatch sw-l1"></span>
               <span>F.Cu Top</span>
             </label>
-            <label class="layer-chip" data-layer="l2">
-              <input type="checkbox" id="chk-l2" checked>
+            <label class="layer-chip" data-layer="in1" for="chk-in1">
+              <input type="checkbox" id="chk-in1" switch checked>
+              <span class="swatch sw-in1"></span>
+              <span>In1.GND</span>
+            </label>
+            <label class="layer-chip" data-layer="in2" for="chk-in2">
+              <input type="checkbox" id="chk-in2" switch checked>
+              <span class="swatch sw-in2"></span>
+              <span>In2.PWR</span>
+            </label>
+            <label class="layer-chip" data-layer="l2" for="chk-l2">
+              <input type="checkbox" id="chk-l2" switch checked>
               <span class="swatch sw-l2"></span>
               <span>B.Cu Bot</span>
             </label>
-            <label class="layer-chip" data-layer="vias">
-              <input type="checkbox" id="chk-vias" checked>
-              <span class="swatch sw-via"></span>
-              <span>Vias</span>
+            <label class="layer-chip" data-layer="pour" for="chk-pour">
+              <input type="checkbox" id="chk-pour" switch checked>
+              <span class="swatch sw-pour"></span>
+              <span>Cu Pour</span>
             </label>
-            <label class="layer-chip" data-layer="courtyards">
-              <input type="checkbox" id="chk-courtyard" checked>
+            <label class="layer-chip" data-layer="vias" for="chk-vias">
+              <input type="checkbox" id="chk-vias" switch checked>
+              <span class="swatch sw-via"></span>
+              <span>Vias / uVia</span>
+            </label>
+            <label class="layer-chip" data-layer="courtyards" for="chk-courtyard">
+              <input type="checkbox" id="chk-courtyard" switch checked>
               <span class="swatch sw-crtyd"></span>
               <span>Courtyards</span>
             </label>
-            <label class="layer-chip" data-layer="ratsnest">
-              <input type="checkbox" id="chk-ratsnest" checked>
+            <label class="layer-chip" data-layer="ratsnest" for="chk-ratsnest">
+              <input type="checkbox" id="chk-ratsnest" switch checked>
               <span class="swatch sw-rat"></span>
               <span>Rat's Nest</span>
             </label>
-            <label class="layer-chip" data-layer="congestion">
-              <input type="checkbox" id="chk-congestion" checked>
+            <label class="layer-chip" data-layer="congestion" for="chk-congestion">
+              <input type="checkbox" id="chk-congestion" switch checked>
               <span class="swatch sw-cong"></span>
               <span>Congestion M<sub>t+1</sub></span>
             </label>
-            <label class="layer-chip" data-layer="penalty">
-              <input type="checkbox" id="chk-penalty" checked>
+            <label class="layer-chip" data-layer="penalty" for="chk-penalty">
+              <input type="checkbox" id="chk-penalty" switch checked>
               <span class="swatch sw-pen"></span>
               <span>DRC Penalty</span>
             </label>
@@ -114,36 +308,53 @@
 
           <div class="canvas-meta mono">
             <span id="cursor-coords">X: 25.0mm &nbsp; Y: 25.0mm</span>
+            <button type="button" id="btn-flip-board" class="btn-ghost" aria-pressed="false" title="Flip Board 180 deg (F)">Flip (F)</button>
             <button type="button" id="btn-reset-view" class="btn-ghost" title="Reset Zoom and Pan">Reset View</button>
           </div>
         </div>
 
         <div class="canvas-stage" id="canvas-stage">
-          <canvas id="pcb-canvas"></canvas>
+          <canvas id="pcb-canvas" role="tabpanel" aria-labelledby="btn-view-2d"></canvas>
+          <div id="pcb-3d-stage" class="pbr-3d-stage" role="tabpanel" aria-labelledby="btn-view-3d" hidden></div>
+          <div id="schematic-stage" class="schematic-stage" role="tabpanel" aria-labelledby="btn-view-schematic" hidden></div>
           <div class="hud-status-pill" id="hud-pill">
             <span class="dot idle" id="status-dot"></span>
             <span id="status-text">Ready &middot; Select preset and run rollout</span>
           </div>
           <div class="hud-3d-controls" id="hud-3d-controls" hidden>
-            <label for="tilt-range">3D Tilt</label>
-            <input type="range" id="tilt-range" min="15" max="75" value="44">
-            <label for="yaw-range">Orbit</label>
-            <input type="range" id="yaw-range" min="-60" max="60" value="-24">
+            <span class="mono">Orbit: Drag &middot; Pan: Right-Drag &middot; Flip: F &middot; Pick: Click</span>
           </div>
         </div>
 
-        <!-- 7-Channel Spatial Tensor Strip S_t [7, 250, 250] + M_{t+1} -->
+        <!-- 7-Channel Spatial Tensor Strip S_t + M_{t+1} -->
         <section class="tensor-strip" aria-label="Spatial State Tensor Channels">
           <div class="strip-header">
-            <h2>Spatial Tensor <code class="mono">S<sub>t</sub> [7, 250, 250]</code> &amp; Latent Field</h2>
+            <h2>Spatial Tensor <code class="mono" id="tensor-shape-tag">S<sub>t</sub> [7, 250, 250]</code> &amp; Latent Field</h2>
             <span class="strip-hint" id="overlay-label">Click any channel to solo-overlay on board</span>
           </div>
           <div class="tensor-grid" id="tensor-grid"></div>
         </section>
       </section>
 
-      <!-- Right Telemetry & Control Dock -->
+      <!-- Right Telemetry & Component Pinout Inspector Dock -->
       <aside class="telemetry-dock">
+        <!-- Interactive Vector SVG Pinout Inspector (rev9) -->
+        <section class="panel" id="pin-inspector-panel">
+          <div class="panel-header">
+            <h2>Component &amp; Pin Inspector</h2>
+            <span class="mono muted-tag" id="pin-comp-tag">No selection</span>
+          </div>
+          <div class="pin-comp-meta mono" id="pin-comp-meta"></div>
+          <div class="pin-diagram-host" id="pin-diagram-host"></div>
+          <div class="pin-role-legend" aria-label="Pin Role Color Key">
+            <span class="role-dot role-power">Power</span>
+            <span class="role-dot role-gnd">GND</span>
+            <span class="role-dot role-bus">I2C/SPI</span>
+            <span class="role-dot role-usb">USB</span>
+            <span class="role-dot role-gpio">GPIO/Clk</span>
+          </div>
+        </section>
+
         <!-- Critic & Physical Metrics -->
         <section class="panel">
           <div class="panel-header">
@@ -187,20 +398,135 @@
           </div>
         </section>
 
+        <!-- Rev 10 DFM / DFA Craftsmanship Audit & Compromise Report -->
+        <section class="panel" id="dfm-panel">
+          <div class="panel-header">
+            <h2>DFM / DFA Craftsmanship</h2>
+            <div class="panel-badges">
+              <span class="mono muted-tag" id="val-dfm-score">Score: --</span>
+              <span class="drc-badge neutral" id="dfm-badge" role="status" aria-atomic="true">DFM IDLE</span>
+            </div>
+          </div>
+
+          <div class="kpi-grid si-kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Acid Traps</span>
+              <strong class="kpi-value mono" id="val-dfm-acid">--</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Side-Entry</span>
+              <strong class="kpi-value mono" id="val-dfm-asym">--</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Screw MLCC</span>
+              <strong class="kpi-value mono" id="val-dfm-screw">--</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Silk-on-Pad</span>
+              <strong class="kpi-value mono" id="val-dfm-silk">--</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Teardrops</span>
+              <strong class="kpi-value mono" id="val-dfm-teardrops">--</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Corner Fillet</span>
+              <strong class="kpi-value mono" id="val-dfm-fillet">--</strong>
+            </div>
+          </div>
+
+          <div tabindex="0" role="region" aria-labelledby="dfm-table-caption" class="table-wrap si-table-wrap">
+            <table class="cand-table si-table">
+              <caption id="dfm-table-caption" class="visually-hidden">Transparent DFM engineering compromises</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Compromise</th>
+                  <th scope="col">Action</th>
+                  <th scope="col">Cost</th>
+                </tr>
+              </thead>
+              <tbody id="dfm-tbody">
+                <tr><td colspan="3" class="empty-cell">Route board to inspect DFM/DFA compromises</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Electrical Signal Integrity & Kernel Acceleration -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Signal Integrity &amp; Kernel</h2>
+            <div class="panel-badges">
+              <span class="mono muted-tag" id="kernel-tag">Kernel: --</span>
+              <span class="drc-badge neutral" id="si-badge">SI --</span>
+            </div>
+          </div>
+
+          <div class="kpi-grid si-kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Max Trace R<sub>DC</sub></span>
+              <strong class="kpi-value mono" id="val-si-rdc">-- m&Omega;</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Loop L<sub>eff</sub></span>
+              <strong class="kpi-value mono" id="val-si-loop">-- nH</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Min Via I<sub>max</sub></span>
+              <strong class="kpi-value mono" id="val-si-viaamp">-- A</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Min Trace I<sub>max</sub></span>
+              <strong class="kpi-value mono" id="val-si-traceamp">-- A</strong>
+            </div>
+          </div>
+
+          <div tabindex="0" role="region" aria-labelledby="si-table-caption" class="table-wrap si-table-wrap">
+            <table class="cand-table si-table">
+              <caption id="si-table-caption" class="visually-hidden">Per-net signal integrity and IPC-2221 ampacity telemetry</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Net</th>
+                  <th scope="col">R<sub>DC</sub></th>
+                  <th scope="col">L (nH)</th>
+                  <th scope="col">Z<sub>0</sub></th>
+                  <th scope="col">I<sub>max</sub></th>
+                </tr>
+              </thead>
+              <tbody id="si-tbody">
+                <tr><td colspan="5" class="empty-cell">Route board to inspect SI &amp; thermal margins</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Active Layout Rules & Engineering Rationale -->
+        <section class="panel" id="rationale-panel">
+          <div class="panel-header">
+            <h2>Active Layout Rules &amp; Rationale</h2>
+            <span class="mono muted-tag" id="board-phys-tag">-- mm</span>
+          </div>
+          <div class="rule-badges" id="rules-chips"></div>
+          <ul class="rationale-list" id="rationale-list">
+            <li class="empty-rationale">Select or synthesize a board to inspect active Class B layout rules and mechanical specs.</li>
+          </ul>
+        </section>
+
         <!-- Candidate Placement Leaderboard -->
         <section class="panel">
           <div class="panel-header">
             <h2>GNN Candidate Leaderboard</h2>
             <span class="mono muted-tag" id="cand-count-tag">K = 8</span>
           </div>
-          <div class="table-wrap">
+          <div tabindex="0" role="region" aria-labelledby="cand-table-caption" class="table-wrap">
             <table class="cand-table">
+              <caption id="cand-table-caption" class="visually-hidden">GNN placement candidate ranking</caption>
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>V(S<sub>t</sub>)</th>
-                  <th>Score</th>
-                  <th>HPWL</th>
+                  <th scope="col">#</th>
+                  <th scope="col">V(S<sub>t</sub>)</th>
+                  <th scope="col">Score</th>
+                  <th scope="col">HPWL</th>
                 </tr>
               </thead>
               <tbody id="cand-tbody">
@@ -220,17 +546,103 @@
         </section>
       </aside>
     </main>
+    </div> <!-- /panel-cad -->
+
+    <!-- View Mode: Technical Dossier -->
+    <div id="panel-dossier" class="view-mode-panel">
+      <div class="dossier-doc" id="dossier-content"></div>
+    </div>
+
+    <!-- View Mode: Master Benchmark Matrix -->
+    <div id="panel-benchmarks" class="view-mode-panel">
+      <div class="benchmark-card">
+        <h2>PCB World Model — Master Revision Score Log &amp; Frontier Baselines</h2>
+        <p>Comprehensive verified score matrix across all revisions and external frontier models (GPT-6 Astra, Skyfall SKY-001, Freerouting).</p>
+        <div class="bench-table-wrap">
+          <table class="bench-table" id="benchmarks-table">
+            <thead>
+              <tr>
+                <th>Revision</th>
+                <th>Status</th>
+                <th>Core Capability Unlocked</th>
+                <th>Target Boards</th>
+                <th>Composite Score</th>
+                <th>Router Runtime</th>
+                <th>Total Vias</th>
+                <th>DRC Clean</th>
+                <th>Layers</th>
+              </tr>
+            </thead>
+            <tbody id="benchmarks-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Mode: Revision Comparison -->
+    <div id="panel-compare" class="view-mode-panel">
+      <div class="benchmark-card">
+        <h2>Side-by-Side Revision Comparative Analysis</h2>
+        <p>Select any two revisions to compare architectural milestones, algorithmic speedups, and physical constraint enforcement.</p>
+        <div class="compare-container">
+          <div class="compare-card">
+            <div class="compare-header">
+              <label for="cmp-rev-a"><strong>Baseline Revision (A)</strong></label>
+              <select id="cmp-rev-a" class="compare-select"></select>
+            </div>
+            <div id="cmp-body-a"></div>
+          </div>
+          <div class="compare-card">
+            <div class="compare-header">
+              <label for="cmp-rev-b"><strong>Comparison Revision (B)</strong></label>
+              <select id="cmp-rev-b" class="compare-select"></select>
+            </div>
+            <div id="cmp-body-b"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Mode: Rev 15 Local LLM Prompt Studio -->
+    <div id="panel-llm" class="view-mode-panel">
+      <div class="llm-studio-card">
+        <h2>Revision 15: Local LLM Physics-Translator Frontend Studio</h2>
+        <p>Decouple messy natural language from spatial tensors via local <code>qwen3-1.7b</code> JSON Schema extraction + deterministic gatekeeper pre-flight validation.</p>
+        <div class="llm-presets-row">
+          <button type="button" class="llm-preset-chip" data-prompt="Design an 8-layer HDI 2+4+2 mixed-signal board with 5A 2MHz GaN buck, 24-bit precision ADC, continuous ground return, and 85-ohm PCIe Gen 4 differential pair">Example: 8L HDI PCIe + Mixed-Signal</button>
+          <button type="button" class="llm-preset-chip" data-prompt="26x26mm single-sided wearable BLE sensor keychain with ESP32-C3, USB-C, LiPo charger, and 3D enclosure height limit 4.5mm">Example: 26x26mm Wearable Keychain</button>
+          <button type="button" class="llm-preset-chip" data-prompt="High-density 4-layer drone flight controller with STM32F405, 6-axis IMU, baro, 4x ESC outputs, and current sense shunt">Example: 4L Drone Flight Controller</button>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;">
+          <input type="text" id="llm-studio-input" class="mono" style="flex:1;background:#090d16;border:1px solid #263248;border-radius:6px;padding:10px 14px;color:#f8fafc;" value="Design an 8-layer HDI 2+4+2 mixed-signal board with 5A 2MHz GaN buck, 24-bit precision ADC, continuous ground return, and 85-ohm PCIe Gen 4 differential pair">
+          <button type="button" id="btn-run-llm-studio" class="btn-primary" style="white-space:nowrap;">Extract Physics Schema</button>
+        </div>
+        <div class="llm-output-grid">
+          <div>
+            <h3 style="font-size:13px;color:#94a3b8;margin-bottom:6px;">Extracted <code>PromptPhysicsSpec</code> (Strict JSON Schema)</h3>
+            <pre class="llm-output-box" id="llm-json-output">// Click "Extract Physics Schema" to translate prompt</pre>
+          </div>
+          <div>
+            <h3 style="font-size:13px;color:#94a3b8;margin-bottom:6px;">Deterministic Gatekeeper Validation &amp; <code>BoardConfig</code></h3>
+            <pre class="llm-output-box" id="llm-gatekeeper-output" style="color:#10b981;">// Gatekeeper ready to validate constraints</pre>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Native <dialog> for KiCad S-expression Export Inspection -->
-  <dialog id="kicad-dialog" class="kicad-dialog" aria-labelledby="kicad-dialog-title">
+  <dialog id="kicad-dialog" class="kicad-dialog" closedby="any" aria-labelledby="kicad-dialog-title">
     <div class="dialog-header">
       <div>
         <h2 id="kicad-dialog-title">Generated <code>output_clean.kicad_pcb</code></h2>
         <p class="subtitle">Manufacturing-ready KiCad 8 S-expression export</p>
       </div>
       <div class="dialog-actions">
-        <button type="button" id="btn-copy-kicad" class="btn-secondary">Copy</button>
+        <span class="copy">
+          <button type="button" id="btn-copy-kicad" class="btn-secondary copy-button" command="--copy" commandfor="kicad-code" aria-label="Copy KiCad S-expression">Copy</button>
+          <span id="copy-tip" class="copy-tip" role="status" aria-live="polite"></span>
+        </span>
         <a id="btn-download-kicad" class="btn-primary" href="/api/export-kicad?download=1" download>Download</a>
         <button type="button" id="btn-close-dialog" class="btn-ghost">Close</button>
       </div>
@@ -238,6 +650,258 @@
     <pre class="kicad-code mono" id="kicad-code"></pre>
   </dialog>
 
-  <script src="/static/app.js"></script>
+  <!-- Native <dialog> for rev7 Interactive Constraint & Trade-Off Gate -->
+  <dialog id="negotiate-dialog" class="kicad-dialog negotiate-dialog" aria-labelledby="neg-dialog-title">
+    <div class="dialog-header">
+      <div>
+        <h2 id="neg-dialog-title">Pre-Flight Physical Constraint &amp; Trade-Off Gate</h2>
+        <p class="subtitle" id="neg-dialog-subtitle">Confirms underspecified dimensions/stackup and rejects physically impossible enclosures (&gt;72% utilization).</p>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="btn-neg-cancel" class="btn-ghost">Cancel</button>
+      </div>
+    </div>
+
+    <div class="neg-util-bar">
+      <div class="neg-util-row">
+        <span>Estimated Courtyard Utilization</span>
+        <strong class="mono" id="neg-util-text">--% (-- / -- mm&sup2;)</strong>
+      </div>
+      <progress id="neg-util-progress" max="100" value="0">0%</progress>
+    </div>
+
+    <div id="neg-alert" class="neg-alert" role="alert" tabindex="-1" hidden></div>
+
+    <form id="neg-form" class="neg-form" novalidate>
+      <div class="neg-grid">
+        <div class="neg-field">
+          <label for="neg-width">Board Width (mm)</label>
+          <input type="number" id="neg-width" min="10" max="300" step="1" value="26">
+        </div>
+        <div class="neg-field">
+          <label for="neg-height">Board Height (mm)</label>
+          <input type="number" id="neg-height" min="10" max="300" step="1" value="26">
+        </div>
+        <div class="neg-field">
+          <label for="neg-thickness">Thickness (mm)</label>
+          <select id="neg-thickness">
+            <option value="0.8">0.8 mm Thin Wearable FR4</option>
+            <option value="1.6">1.6 mm Standard FR4</option>
+            <option value="1.2">1.2 mm FR4</option>
+          </select>
+        </div>
+        <div class="neg-field">
+          <label for="neg-layers">Copper Stackup</label>
+          <select id="neg-layers">
+            <option value="2">2-Layer (F.Cu / B.Cu)</option>
+            <option value="4">4-Layer HDI</option>
+            <option value="6">6-Layer HDI</option>
+            <option value="8">8-Layer HDI (2+4+2)</option>
+          </select>
+        </div>
+        <div class="neg-field">
+          <label for="neg-placement">Placement Architecture</label>
+          <select id="neg-placement">
+            <option value="single">Single-Sided (keep_back_flat + Rear LiPo Pads)</option>
+            <option value="double">Double-Sided SMD (Top + Bottom)</option>
+          </select>
+        </div>
+        <div class="neg-field">
+          <label for="neg-wireless">Wireless SoC vs Module</label>
+          <select id="neg-wireless">
+            <option value="esp32_c3fn4_qfn">ESP32-C3FN4 QFN-32 + 40MHz XTAL + Chip Antenna</option>
+            <option value="esp32_c3_mini">ESP32-C3-MINI-1 Pre-Certified Module</option>
+          </select>
+        </div>
+        <div class="neg-field">
+          <label for="neg-holes">Corner Mounting Holes (2.0mm NPTH)</label>
+          <select id="neg-holes">
+            <option value="0">0 Holes</option>
+            <option value="2">2 Diagonal Holes (Wearable)</option>
+            <option value="4">4 Corner Holes</option>
+          </select>
+        </div>
+        <div class="neg-field">
+          <label for="neg-passive">Commodity Passive Size (Class A)</label>
+          <select id="neg-passive">
+            <option value="0402">0402 Imperial (Wearable Compact)</option>
+            <option value="0603">0603 Imperial (Standard)</option>
+            <option value="0805">0805 Imperial (Power / Hand-Solder)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="neg-questions-wrap" class="neg-section" hidden>
+        <h3>Architectural Questions Requiring Confirmation</h3>
+        <ul id="neg-questions-list" class="neg-list"></ul>
+      </div>
+
+      <div id="neg-tradeoffs-wrap" class="neg-section" hidden>
+        <h3>Quantified Remediation Options</h3>
+        <div id="neg-tradeoffs-list" class="tradeoff-grid"></div>
+      </div>
+
+      <div class="neg-actions">
+        <button type="button" id="btn-neg-recheck" class="btn-secondary">Re-Check Feasibility</button>
+        <button type="submit" id="btn-neg-confirm" class="btn-primary">Confirm Specs &amp; Synthesize</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Native <dialog> for 12-Domain Class A/B Catalog & Class C Importer -->
+  <dialog id="library-dialog" class="kicad-dialog library-dialog" closedby="any" aria-labelledby="lib-dialog-title">
+    <div class="dialog-header">
+      <div>
+        <h2 id="lib-dialog-title">Component Library (12 Industry Domains) &amp; Class C Importer</h2>
+        <p class="subtitle" id="lib-summary-subtitle">Class A parameterized passives &middot; Class B pin-exact ICs &middot; Class C .kicad_mod / Datasheet compiler</p>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="btn-close-library" class="btn-ghost">Close</button>
+      </div>
+    </div>
+
+    <div class="lib-controls">
+      <div class="neg-field">
+        <label for="lib-domain-select">Industry Domain</label>
+        <select id="lib-domain-select">
+          <option value="">All 12 Domains</option>
+        </select>
+      </div>
+      <div class="neg-field">
+        <label for="lib-search-input">Search Part / Layout Rule</label>
+        <input type="search" id="lib-search-input" placeholder="e.g. ESP32, LIS3DH, TMC2209, thermal_via_ep, creepage">
+      </div>
+    </div>
+
+    <div id="lib-device-list" class="lib-device-grid" aria-live="polite"></div>
+
+    <div class="class-c-grid">
+      <div class="class-c-card">
+        <h3>Class C: Raw <code>.kicad_mod</code> Parser</h3>
+        <label for="kicad-mod-input" class="visually-hidden">Paste KiCad module S-expression</label>
+        <textarea id="kicad-mod-input" class="mono" rows="4" spellcheck="false">(footprint "Custom:QFN-16" (pad "1" smd rect (at -1.5 -0.75) (size 0.7 0.28) (layers "F.Cu" "F.Paste" "F.Mask")) (pad "EP" smd rect (at 0 0) (size 1.8 1.8) (layers "F.Cu" "F.Paste" "F.Mask")))</textarea>
+        <div class="class-c-footer">
+          <button type="button" id="btn-parse-kicad-mod" class="btn-secondary">Parse .kicad_mod</button>
+          <span id="kicad-mod-result" class="mono muted-tag">Ready</span>
+        </div>
+      </div>
+
+      <div class="class-c-card">
+        <h3>Class C: Datasheet Pin-Table Compiler</h3>
+        <label for="datasheet-json-input" class="visually-hidden">Paste lightweight datasheet JSON</label>
+        <textarea id="datasheet-json-input" class="mono" rows="4" spellcheck="false">{"part_number": "SNSR_QFN16", "package": "QFN-16", "pitch": 0.5, "body_size": 3.0, "thermal_pad": "GND", "pins": {"1": "VDD", "2": "GND", "3": "SDA", "4": "SCL", "5": "XIN", "6": "XOUT", "7": "INT1", "8": "NRST"}}</textarea>
+        <div class="class-c-footer">
+          <button type="button" id="btn-compile-datasheet" class="btn-secondary">Compile Pin Table</button>
+          <span id="datasheet-result" class="mono muted-tag">Ready</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="class-c-grid" id="rev11-import-panel">
+      <div class="class-c-card">
+        <h3>Rev 11: Schematic / SPICE / <code>atopile</code> + Auto-ERC</h3>
+        <label for="rev11-schematic-input" class="visually-hidden">Paste .kicad_sch, SPICE, or atopile source</label>
+        <textarea id="rev11-schematic-input" class="mono" rows="4" spellcheck="false">module SensorNode:
+  u_mcu = new ATtiny1614
+  r_pu = new Resistor
+    value = 4.7k
+    footprint = R_0603
+  vcc ~ u_mcu.1
+  gnd ~ u_mcu.8
+  sda ~ u_mcu.2
+  sda ~ r_pu.1
+  vcc ~ r_pu.2</textarea>
+        <div class="class-c-footer">
+          <button type="button" id="btn-import-schematic" class="btn-secondary">Import + Auto-ERC Fix</button>
+          <span id="rev11-schematic-result" class="mono muted-tag">Ready</span>
+        </div>
+      </div>
+
+      <div class="class-c-card">
+        <h3>Rev 11: Lock-Preserving <code>.kicad_pcb</code> Re-Optimize</h3>
+        <label for="rev11-locks-input" class="visually-hidden">Locked component IDs</label>
+        <input type="text" id="rev11-locks-input" class="mono" value="J1,J2,U1,MH1,MH2" placeholder="Locked IDs (e.g. J1,J2,U1,MH1)">
+        <div class="class-c-footer">
+          <button type="button" id="btn-reoptimize-sample" class="btn-primary">Re-Optimize Sample Legacy PCB</button>
+          <span id="rev11-reopt-result" class="mono muted-tag">Ready</span>
+        </div>
+        <pre id="rev11-diff-output" class="mono" style="margin-top:0.5rem;font-size:0.72rem;max-height:110px;overflow:auto;">Click Re-Optimize to view Before-vs-After via/WL/DRC/DFM gains.</pre>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Native <dialog> for rev8 Silicon-to-Board Verilog RTL, FPGA .pcf Pin-Swap & OpenLane SKY130 -->
+  <dialog id="silicon-dialog" class="kicad-dialog silicon-dialog" closedby="any" aria-labelledby="silicon-dialog-title">
+    <div class="dialog-header">
+      <div>
+        <h2 id="silicon-dialog-title">Silicon-to-Board Verilog Co-Design &amp; OpenLane ASIC</h2>
+        <p class="subtitle">Synthesizes Verilog-2001 RTL, verifies with <code>iverilog</code> + Verilator, swaps FPGA <code>.pcf</code> pins jointly with PCB layout, and compiles SKY130 GDSII</p>
+      </div>
+      <div class="dialog-actions">
+        <span class="drc-badge neutral" id="silicon-sim-badge">SIM IDLE</span>
+        <button type="button" id="btn-close-silicon" class="btn-ghost">Close</button>
+      </div>
+    </div>
+
+    <div class="silicon-controls">
+      <div class="neg-field silicon-prompt-field">
+        <label for="silicon-prompt-input">Digital IC / Bridge Specification</label>
+        <input type="text" id="silicon-prompt-input" value="Need a custom 8-channel high-speed WS2812 + hardware quadrature encoder controller that talks over SPI to an ESP32-C3; no single off-the-shelf IC exists">
+      </div>
+      <div class="neg-field">
+        <label for="silicon-target-select">Target Fabric</label>
+        <select id="silicon-target-select">
+          <option value="ice40up5k_sg48">Lattice iCE40UP5K-SG48 (QFN-48)</option>
+          <option value="ice40up5k_uwg30">Lattice iCE40UP5K-UWG30 (WLCSP)</option>
+          <option value="gw1nr9">Gowin GW1NR-9 (QFN-88)</option>
+          <option value="machxo2_1200">Lattice MachXO2-1200HC</option>
+          <option value="rp2040_pio">RP2040 Dual-PIO Coprocessor</option>
+          <option value="sky130_asic">OpenLane SKY130 ASIC (GDSII)</option>
+        </select>
+      </div>
+      <div class="silicon-btns">
+        <button type="button" id="btn-silicon-synth" class="btn-secondary">Synthesize &amp; Sim RTL</button>
+        <button type="button" id="btn-silicon-codesign" class="btn-primary">Joint .pcf + PCB Co-Design</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid silicon-kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">iverilog + Verilator</span>
+        <strong class="kpi-value mono" id="sil-sim-val">--</strong>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">FPGA Timing F<sub>max</sub></span>
+        <strong class="kpi-value mono" id="sil-fmax-val">-- MHz</strong>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">.pcf Crossings</span>
+        <strong class="kpi-value mono" id="sil-cross-val">-- &rarr; --</strong>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Crossing Reduction</span>
+        <strong class="kpi-value mono" id="sil-red-val">--%</strong>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">LUT4 / DFF</span>
+        <strong class="kpi-value mono" id="sil-lut-val">-- / --</strong>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">SKY130 GDSII</span>
+        <strong class="kpi-value mono" id="sil-gds-val">--</strong>
+      </div>
+    </div>
+
+    <div class="silicon-tabs" role="tablist" aria-label="Silicon Artifact Views">
+      <button type="button" class="sil-tab active" data-siltab="rtl" role="tab" aria-selected="true">Verilog RTL (.v)</button>
+      <button type="button" class="sil-tab" data-siltab="tb" role="tab" aria-selected="false">Testbench (_tb.v)</button>
+      <button type="button" class="sil-tab" data-siltab="pcf" role="tab" aria-selected="false">.pcf &amp; Pin Swaps</button>
+      <button type="button" class="sil-tab" data-siltab="asic" role="tab" aria-selected="false">Bitstream / SKY130 ASIC</button>
+    </div>
+
+    <pre class="kicad-code mono silicon-code" id="silicon-code-view">Click "Synthesize &amp; Sim RTL" or "Joint .pcf + PCB Co-Design" to generate verified Verilog-2001 RTL, run iverilog simulation, optimize FPGA .pcf pin mappings, and emit SKY130 GDSII.</pre>
+  </dialog>
+
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
