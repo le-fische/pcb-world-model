@@ -1,0 +1,36 @@
+# 4-Layer HDI PCB Engineering World Model Configuration (F.Cu, In1.GND, In2.PWR, B.Cu)
+board_width_mm: 50.0
+board_height_mm: 50.0
+grid_resolution_mm: 0.2
+snap_grid_mm: 0.5
+layers: 4
+clearance_mm: 0.15
+trace_width_mm: 0.25
+signal_trace_width_mm: 0.25
+power_trace_width_mm: 0.40
+via_diameter_mm: 0.6
+via_drill_mm: 0.3
+microvia_diameter_mm: 0.40
+microvia_drill_mm: 0.20
+copper_thickness_mm: 0.035
+board_thickness_mm: 1.6
+prepreg_thickness_mm: 0.20
+edge_margin_mm: 1.5
+
+# Neural-Guided Router & Closed-Loop Inference Parameters
+alpha_congestion: 2.5
+beta_drc_penalty: 1.0
+gamma_via_cost: 28.0
+gamma_microvia_cost: 4.5
+enable_internal_planes: true
+max_ripup_iterations: 5
+num_placement_candidates: 8
+
+# Rev 10 DFM / DFA Craftsmanship Parameters
+enable_dfm_craftsmanship: true
+corner_fillet_radius_mm: 2.0
+screw_stress_buffer_mm: 1.8
+preferred_clearance_mm: 0.32
+rework_courtyard_margin_mm: 0.8
+enable_teardrops: true
+enable_test_points: true

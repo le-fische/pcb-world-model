@@ -1,0 +1,67 @@
+{
+  "revision": "rev13",
+  "timestamp_utc": "2026-11-17 00:24 UTC",
+  "total_elapsed_sec": 2.08,
+  "B14_mixed_signal_gan_adc_30x50": {
+    "benchmark_id": "B14",
+    "board": "mixed_signal_gan_adc_30x50",
+    "routed": "15/15",
+    "routed_nets": 15,
+    "total_nets": 15,
+    "drc_errors": 0,
+    "continuous_gnd": true,
+    "gan_to_adc_separation_mm": 28.071,
+    "j_return_overlap_pct": 0.0,
+    "switching_under_analog_count": 0,
+    "broadside_violations": 0,
+    "max_broadside_cap_pf": 0.0,
+    "dfm_status": "PASS",
+    "craftsmanship_score": 100.0,
+    "step_valid": true,
+    "rationale_count": 4,
+    "elapsed_sec": 1.32,
+    "success": true
+  },
+  "B14a_z_axis_broadside_crosstalk_trap": {
+    "benchmark_id": "B14a",
+    "board": "z_axis_broadside_crosstalk_trap",
+    "pre_seed_broadside_detected": 1,
+    "routed": "3/3",
+    "drc_errors": 0,
+    "broadside_violations": 0,
+    "max_broadside_cap_pf": 0.0,
+    "elapsed_sec": 0.21,
+    "success": true
+  },
+  "B14b_remote_star_ground_contradiction": {
+    "benchmark_id": "B14b",
+    "board": "remote_star_ground_contradiction",
+    "initial_rejection_code": "invalid_remote_star_ground",
+    "refused_invalid_constraint": true,
+    "continuous_gnd": true,
+    "slot_antenna_loops": 0,
+    "routed": "7/7",
+    "drc_errors": 0,
+    "elapsed_sec": 0.2,
+    "success": true
+  },
+  "B14c_thermal_vs_signal_inpainting_80pct": {
+    "benchmark_id": "B14c",
+    "board": "thermal_vs_signal_inpainting_80pct",
+    "lock_preservation_verified": true,
+    "locked_components": [
+      "J_ADC",
+      "J_PWR",
+      "Q1",
+      "U_ADC"
+    ],
+    "thermal_slots_carved": 1,
+    "continuous_gnd": true,
+    "j_return_overlap_pct": 0.0,
+    "routed": "7/7",
+    "drc_errors": 0,
+    "elapsed_sec": 0.26,
+    "success": true
+  },
+  "all_passed": true
+}

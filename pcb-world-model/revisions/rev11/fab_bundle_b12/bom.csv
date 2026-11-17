@@ -1,0 +1,12 @@
+Comment,Designator,Footprint,Quantity
+22uF_IN,C1,Capacitor_SMD:C_1206_3216Metric,1
+47uF_OUT,C2,Capacitor_SMD:C_1206_3216Metric,1
+100nF_BST,C3,Capacitor_SMD:C_0603_1608Metric,1
+SS34,D1,Diode_SMD:D_SMA,1
+VIN_12V,J1,TerminalBlock:TerminalBlock_bornier-3_P5.08mm,1
+VOUT_5V,J2,TerminalBlock:TerminalBlock_bornier-2_P5.08mm,1
+10uH,L1,Inductor_SMD:L_6.3x6.3_H3,1
+MH_2.0mm,"MH1,MH2",MountingHole:MountingHole_2.0mm_M2.0_NPTH,2
+100k,R1,Resistor_SMD:R_0603_1608Metric,1
+18.7k,R2,Resistor_SMD:R_0603_1608Metric,1
+TPS54302,U1,Package_SO:SOIC-8_3.9x4.9mm_P1.27mm,1

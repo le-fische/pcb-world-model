@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SILENT TRENCH — Submarine Stealth & Deduction</title>
+    <style>
+        :root {
+            --bg-ocean: #030a10;
+            --bg-card: rgba(8, 24, 34, 0.85);
+            --border-subtle: rgba(0, 255, 170, 0.15);
+            --border-active: #00ffaa;
+            --green-sonar: #00ffaa;
+            --cyan-accent: #00d9ff;
+            --amber-warn: #ffb700;
+            --red-alert: #ff3b4e;
+            --purple-abyss: #b57aff;
+            --text-dim: #7097a2;
+            --text-bright: #e2f4f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", 'JetBrains Mono', Roboto, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-ocean);
+            color: var(--text-bright);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Ambient Bathymetric Background Gradient */
+        .ocean-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 45%, #081d29 0%, #030a10 75%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Top Floating HUD (Two Spies Minimalist Bar) */
+        .top-hud {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .hud-left, .hud-center, .hud-right {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hud-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .map-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--green-sonar);
+        }
+
+        .map-meta {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+        }
+
+        /* Turn & Action Points (Lightning Bolts ⚡ ⚡) */
+        .turn-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .action-bolts {
+            display: flex;
+            gap: 4px;
+        }
+
+        .bolt-icon {
+            font-size: 1rem;
+            opacity: 0.25;
+            transition: all 0.2s;
+        }
+
+        .bolt-icon.active {
+            opacity: 1;
+            color: var(--amber-warn);
+            text-shadow: 0 0 8px rgba(255, 183, 0, 0.7);
+        }
+
+        /* Status Pills */
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-pill.cover-active {
+            background: rgba(0, 255, 170, 0.12);
+            color: var(--green-sonar);
+            border: 1px solid rgba(0, 255, 170, 0.3);
+        }
+
+        .status-pill.cover-blown {
+            background: rgba(255, 59, 78, 0.15);
+            color: var(--red-alert);
+            border: 1px solid rgba(255, 59, 78, 0.4);
+            animation: pulse-warn 1.5s infinite;
+        }
+
+        @keyframes pulse-warn {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .power-counter {
+            color: var(--cyan-accent);
+            font-weight: 700;
+        }
+
+        .btn-icon {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-bright);
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--green-sonar);
+            color: var(--green-sonar);
+            transform: scale(1.05);
+        }
+
+        /* Tactical Map Viewport */
+        .map-viewport {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        svg#trench-map {
+            width: 100%;
+            height: 100%;
+            max-width: 1100px;
+            max-height: 820px;
+        }
+
+        /* Targeting Banner */
+        .targeting-banner {
+            position: absolute;
+            top: 76px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 183, 0, 0.15);
+            border: 1px solid var(--amber-warn);
+            backdrop-filter: blur(10px);
+            padding: 8px 18px;
+            border-radius: 20px;
+            color: var(--amber-warn);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 15;
+            box-shadow: 0 4px 15px rgba(255, 183, 0, 0.2);
+        }
+
+        .targeting-banner.active {
+            display: flex;
+        }
+
+        .btn-cancel-target {
+            background: rgba(255, 183, 0, 0.2);
+            border: 1px solid var(--amber-warn);
+            color: var(--amber-warn);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        /* Bottom Floating Action Card Deck (Two Spies Action Deck) */
+        .bottom-action-dock {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 8px 12px;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .action-card {
+            background: rgba(12, 33, 44, 0.7);
+            border: 1px solid rgba(0, 255, 170, 0.15);
+            border-radius: 12px;
+            padding: 8px 14px;
+            min-width: 95px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            color: var(--text-bright);
+        }
+
+        .action-card:hover:not(:disabled) {
+            border-color: var(--green-sonar);
+            background: rgba(0, 255, 170, 0.12);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 255, 170, 0.25);
+        }
+
+        .action-card.selected {
+            border-color: var(--amber-warn);
+            background: rgba(255, 183, 0, 0.18);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(255, 183, 0, 0.3);
+        }
+
+        .action-card:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            border-color: transparent;
+            transform: none;
+        }
+
+        .card-icon {
+            font-size: 1.25rem;
+        }
+
+        .card-name {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .card-cost {
+            font-size: 0.65rem;
+            color: var(--cyan-accent);
+            opacity: 0.9;
+        }
+
+        .card-strike {
+            border-color: rgba(255, 59, 78, 0.3);
+        }
+        .action-card.card-strike:hover:not(:disabled) {
+            border-color: var(--red-alert);
+            background: rgba(255, 59, 78, 0.18);
+            box-shadow: 0 6px 15px rgba(255, 59, 78, 0.35);
+        }
+
+        /* Minimalist Sonar Event Ticker (Bottom-Left) */
+        .bottom-left-ticker {
+            position: absolute;
+            bottom: 24px;
+            left: 20px;
+            max-width: 280px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .ticker-bubble {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 0.72rem;
+            line-height: 1.35;
+            color: var(--text-dim);
+            pointer-events: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .ticker-bubble.alert {
+            border-color: var(--red-alert);
+            color: #ff9da8;
+        }
+
+        /* Opponent Turn Overlay / Banner */
+        .opponent-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(8, 24, 34, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--amber-warn);
+            border-radius: 20px;
+            padding: 16px 28px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 50;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        .opponent-overlay.active {
+            display: flex;
+        }
+
+        .spinner-radar {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 183, 0, 0.2);
+            border-top-color: var(--amber-warn);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Dialog */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 10, 16, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-active);
+            border-radius: 20px;
+            width: 480px;
+            max-width: 90%;
+            padding: 24px;
+            box-shadow: 0 12px 40px rgba(0, 255, 170, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--green-sonar);
+        }
+
+        .map-item-card {
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(12, 33, 44, 0.6);
+            border: 1px solid rgba(0, 255, 170, 0.1);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .map-item-card:hover, .map-item-card.selected {
+            border-color: var(--cyan-accent);
+            background: rgba(0, 217, 255, 0.12);
+        }
+
+        .btn-primary {
+            background: var(--green-sonar);
+            color: #030a10;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="ocean-bg"></div>
+
+    <!-- Top Minimalist HUD -->
+    <header class="top-hud">
+        <div class="hud-left">
+            <div class="hud-panel">
+                <span class="map-title" id="hud-map-name">MARIANA TRENCH</span>
+                <span class="map-meta" id="hud-map-region">PACIFIC • 10,994m</span>
+            </div>
+        </div>
+
+        <div class="hud-center">
+            <div class="hud-panel">
+                <div class="turn-badge">
+                    <span id="hud-turn-text">YOUR TURN</span>
+                    <div class="action-bolts">
+                        <span class="bolt-icon active" id="bolt-1">⚡</span>
+                        <span class="bolt-icon active" id="bolt-2">⚡</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hud-right">
+            <div class="hud-panel">
+                <div class="status-pill cover-active" id="hud-cover-pill">
+                    <span id="cover-icon">🛡️</span> <span id="cover-text">IN COVER</span>
+                </div>
+                <div style="font-size: 0.78rem;">
+                    🔋 <span class="power-counter" id="hud-power">2/6</span>
+                </div>
+                <div style="font-size: 0.78rem;">
+                    📡 <span id="hud-posts">0/3</span>
+                </div>
+            </div>
+            <button class="btn-icon" onclick="openMissionModal()" title="Mission Briefing">⚙️</button>
+            <button class="btn-icon" id="btn-audio" onclick="toggleAudio()" title="Toggle Sound">🔊</button>
+        </div>
+    </header>
+
+    <!-- Targeting Banner -->
+    <div class="targeting-banner" id="targeting-banner">
+        <span id="targeting-msg">SELECT DESTINATION SECTOR</span>
+        <button class="btn-cancel-target" onclick="cancelTargeting()">CANCEL</button>
+    </div>
+
+    <!-- Opponent Turn Waiting Overlay -->
+    <div class="opponent-overlay" id="opponent-overlay">
+        <div class="spinner-radar"></div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--amber-warn); letter-spacing: 1px;">
+            OPPONENT IS ACTING...
+        </div>
+        <div style="font-size: 0.72rem; color: var(--text-dim);" id="opponent-step-text">
+            Analyzing acoustic telemetry
+        </div>
+    </div>
+
+    <!-- Center Tactical Ocean Map -->
+    <main class="map-viewport">
+        <svg id="trench-map" viewBox="0 0 1000 800">
+            <defs>
+                <!-- Soft Glow Filters -->
+                <filter id="sub-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="5" />
+                    <feMerge>
+                        <feMergeNode />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
+
+            <!-- Subtle Depth Range Rings (Clean, non-intrusive) -->
+            <circle cx="500" cy="400" r="160" fill="none" stroke="#00ffaa" stroke-opacity="0.04" stroke-dasharray="3 6" />
+            <circle cx="500" cy="400" r="320" fill="none" stroke="#00ffaa" stroke-opacity="0.04" stroke-dasharray="3 6" />
+            <circle cx="500" cy="400" r="460" fill="none" stroke="#00ffaa" stroke-opacity="0.04" />
+
+            <!-- Edge Lines Layer -->
+            <g id="layer-edges"></g>
+
+            <!-- Candidate "Could Be Here" Indicators Layer (Two Spies signature) -->
+            <g id="layer-candidates"></g>
+
+            <!-- Nodes Layer -->
+            <g id="layer-nodes"></g>
+
+            <!-- Player & Contact Icons Layer -->
+            <g id="layer-actors"></g>
+        </svg>
+    </main>
+
+    <!-- Bottom Action Dock (Clean Two Spies Action Cards) -->
+    <footer class="bottom-action-dock">
+        <button class="action-card" id="btn-card-move" onclick="startTargetedAction('MOVE')">
+            <span class="card-icon">🧭</span>
+            <span class="card-name">MOVE</span>
+            <span class="card-cost">1 ⚡ • 0 🔋</span>
+        </button>
+
+        <button class="action-card" id="btn-card-control" onclick="executeDirectAction('SECURE')">
+            <span class="card-icon">📡</span>
+            <span class="card-name">CONTROL</span>
+            <span class="card-cost">1 ⚡ • +1 Power</span>
+        </button>
+
+        <button class="action-card card-strike" id="btn-card-torpedo" onclick="startTargetedAction('TORPEDO')">
+            <span class="card-icon">🎯</span>
+            <span class="card-name">TORPEDO</span>
+            <span class="card-cost">1 ⚡ • Strike</span>
+        </button>
+
+        <button class="action-card" id="btn-card-locate" onclick="startTargetedAction('ACTIVE_SONAR')">
+            <span class="card-icon">🔍</span>
+            <span class="card-name">LOCATE</span>
+            <span class="card-cost">1 ⚡ • 2 🔋</span>
+        </button>
+
+        <button class="action-card" id="btn-card-cover" onclick="executeDirectAction('DEEP_COVER')">
+            <span class="card-icon">🌫️</span>
+            <span class="card-name">COVER</span>
+            <span class="card-cost">1 ⚡ • 1 🔋</span>
+        </button>
+
+        <button class="action-card" id="btn-card-pass" onclick="passTurn()">
+            <span class="card-icon">🛑</span>
+            <span class="card-name">END TURN</span>
+            <span class="card-cost">Pass & Drift</span>
+        </button>
+    </footer>
+
+    <!-- Bottom Left Tactical Ticker -->
+    <div class="bottom-left-ticker">
+        <div class="ticker-bubble" id="latest-ticker">
+            Sonar arrays online. Silent running active.
+        </div>
+    </div>
+
+    <!-- Mission Briefing & Map Selection Modal -->
+    <div class="modal-backdrop" id="modal-mission">
+        <div class="modal-box">
+            <div class="modal-title">MISSION DISPATCH</div>
+            <p style="font-size: 0.78rem; color: var(--text-dim);">
+                Deploy your attack submarine to an oceanic trench and engage enemy contacts.
+            </p>
+
+            <div style="font-size: 0.75rem; color: var(--green-sonar); font-weight: 700;">ADVERSARY SYSTEM:</div>
+            <div style="display: flex; gap: 12px; margin-top: -6px;">
+                <label style="font-size: 0.75rem; cursor: pointer;">
+                    <input type="radio" name="modal-opponent" value="neural_net" checked>
+                    Neural Network AI (Self-Play PPO)
+                </label>
+                <label style="font-size: 0.75rem; cursor: pointer;">
+                    <input type="radio" name="modal-opponent" value="bot">
+                    Kapitän Bot (Sonar Tactics)
+                </label>
+            </div>
+
+            <div style="font-size: 0.75rem; color: var(--green-sonar); font-weight: 700; margin-top: 6px;">SELECT BATHYMETRIC TRENCH:</div>
+            <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;" id="modal-map-options"></div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+                <button class="action-card" style="min-width: auto; padding: 8px 16px;" onclick="closeMissionModal()">CANCEL</button>
+                <button class="btn-primary" onclick="confirmMissionStart()">DEPLOY SUBMARINE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Web Audio API Procedural Synthesizer ---
+        let audioCtx = null;
+        let soundOn = true;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function toggleAudio() {
+            soundOn = !soundOn;
+            document.getElementById('btn-audio').innerText = soundOn ? '🔊' : '🔇';
+        }
+
+        function playSonarPing() {
+            if (!soundOn) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1180, now);
+            osc.frequency.exponentialRampToValueAtTime(1080, now + 0.6);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.9);
+        }
+
+        function playTorpedoLaunch() {
+            if (!soundOn) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+            gain.gain.setValueAtTime(0.35, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.55);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.55);
+        }
+
+        function playExplosion() {
+            if (!soundOn) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.8, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(350, now);
+            filter.frequency.linearRampToValueAtTime(60, now + 0.8);
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.4, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start(now);
+        }
+
+        // --- Client State & Logic ---
+        let gameState = null;
+        let mapsList = [];
+        let chosenMap = 'mariana_trench';
+        let currentAction = null;
+        let validTargets = new Set();
+        let isWaitingForAI = false;
+
+        async function fetchState() {
+            try {
+                const res = await fetch('/api/game/state');
+                gameState = await res.json();
+                render();
+                checkAITurnTrigger();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function fetchMaps() {
+            try {
+                const res = await fetch('/api/maps');
+                mapsList = await res.json();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function render() {
+            if (!gameState) return;
+            renderHUD();
+            renderMap();
+            renderActions();
+            renderTicker();
+            checkVictory();
+        }
+
+        function renderHUD() {
+            const p = gameState.player;
+            const opp = gameState.opponent_intel;
+
+            document.getElementById('hud-map-name').innerText = gameState.map.name.toUpperCase();
+            document.getElementById('hud-map-region').innerText = `${gameState.map.region} • TRENCH NETWORK`;
+
+            // Action bolts (Two Spies ⚡ ⚡)
+            const remaining = gameState.actions_remaining;
+            const b1 = document.getElementById('bolt-1');
+            const b2 = document.getElementById('bolt-2');
+            const turnText = document.getElementById('hud-turn-text');
+
+            if (gameState.is_human_turn) {
+                turnText.innerText = `YOUR TURN (${remaining} ACT)`;
+                turnText.style.color = 'var(--text-bright)';
+                b1.className = remaining >= 1 ? 'bolt-icon active' : 'bolt-icon';
+                b2.className = remaining >= 2 ? 'bolt-icon active' : 'bolt-icon';
+            } else {
+                turnText.innerText = 'OPPONENT TURN';
+                turnText.style.color = 'var(--amber-warn)';
+                b1.className = 'bolt-icon';
+                b2.className = 'bolt-icon';
+            }
+
+            // Cover status
+            const pill = document.getElementById('hud-cover-pill');
+            const coverText = document.getElementById('cover-text');
+            if (p.in_deep_cover) {
+                pill.className = 'status-pill cover-active';
+                coverText.innerText = 'IN COVER';
+            } else {
+                pill.className = 'status-pill cover-blown';
+                coverText.innerText = 'COVER BLOWN';
+            }
+
+            document.getElementById('hud-power').innerText = `${p.power}/${p.max_power} MW`;
+            document.getElementById('hud-posts').innerText = `${p.controlled_posts}/3`;
+        }
+
+        function renderMap() {
+            const edgesLayer = document.getElementById('layer-edges');
+            const candidatesLayer = document.getElementById('layer-candidates');
+            const nodesLayer = document.getElementById('layer-nodes');
+            const actorsLayer = document.getElementById('layer-actors');
+
+            edgesLayer.innerHTML = '';
+            candidatesLayer.innerHTML = '';
+            nodesLayer.innerHTML = '';
+            actorsLayer.innerHTML = '';
+
+            const nodes = gameState.map.nodes;
+            const nodeMap = new Map();
+            nodes.forEach(n => nodeMap.set(n.id, n));
+
+            // Edges
+            const drawn = new Set();
+            nodes.forEach(u => {
+                const ux = 100 + u.x * 800;
+                const uy = 80 + u.y * 640;
+                u.neighbors.forEach(vId => {
+                    const key = [Math.min(u.id, vId), Math.max(u.id, vId)].join('-');
+                    if (!drawn.has(key)) {
+                        drawn.add(key);
+                        const v = nodeMap.get(vId);
+                        if (v) {
+                            const vx = 100 + v.x * 800;
+                            const vy = 80 + v.y * 640;
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', ux);
+                            line.setAttribute('y1', uy);
+                            line.setAttribute('x2', vx);
+                            line.setAttribute('y2', vy);
+                            line.setAttribute('stroke', '#00ffaa');
+                            line.setAttribute('stroke-opacity', '0.18');
+                            line.setAttribute('stroke-width', '1.5');
+                            edgesLayer.appendChild(line);
+                        }
+                    }
+                });
+            });
+
+            // Two Spies "Could Be Here" Indicators
+            const candidates = gameState.opponent_intel.candidate_nodes || [];
+            const oppBlown = !gameState.opponent_intel.in_deep_cover;
+
+            if (!oppBlown) {
+                candidates.forEach(cId => {
+                    const cNode = nodeMap.get(cId);
+                    if (cNode) {
+                        const cx = 100 + cNode.x * 800;
+                        const cy = 80 + cNode.y * 640;
+                        const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        ring.setAttribute('cx', cx);
+                        ring.setAttribute('cy', cy);
+                        ring.setAttribute('r', '22');
+                        ring.setAttribute('fill', 'rgba(255, 183, 0, 0.05)');
+                        ring.setAttribute('stroke', 'var(--amber-warn)');
+                        ring.setAttribute('stroke-width', '1.5');
+                        ring.setAttribute('stroke-dasharray', '3 4');
+                        ring.setAttribute('opacity', '0.7');
+                        candidatesLayer.appendChild(ring);
+                    }
+                });
+            }
+
+            // Nodes
+            nodes.forEach(n => {
+                const nx = 100 + n.x * 800;
+                const ny = 80 + n.y * 640;
+                const isTarget = validTargets.has(n.id);
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('style', 'cursor: pointer;');
+                g.onclick = () => onNodeSelected(n.id);
+
+                // Control ring
+                if (n.controlled_by === 0) {
+                    const cRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    cRing.setAttribute('cx', nx);
+                    cRing.setAttribute('cy', ny);
+                    cRing.setAttribute('r', '18');
+                    cRing.setAttribute('fill', 'none');
+                    cRing.setAttribute('stroke', 'var(--cyan-accent)');
+                    cRing.setAttribute('stroke-width', '2');
+                    g.appendChild(cRing);
+                } else if (n.controlled_by === 1) {
+                    const cRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    cRing.setAttribute('cx', nx);
+                    cRing.setAttribute('cy', ny);
+                    cRing.setAttribute('r', '18');
+                    cRing.setAttribute('fill', 'none');
+                    cRing.setAttribute('stroke', 'var(--red-alert)');
+                    cRing.setAttribute('stroke-width', '2');
+                    g.appendChild(cRing);
+                }
+
+                // Core node
+                const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                dot.setAttribute('cx', nx);
+                dot.setAttribute('cy', ny);
+                dot.setAttribute('r', isTarget ? '14' : '9');
+
+                let fill = '#0a212e';
+                let stroke = '#00ffaa';
+
+                if (n.node_type === 'LISTENING_POST') stroke = 'var(--cyan-accent)';
+                else if (n.node_type === 'THERMAL_LAYER') stroke = 'var(--amber-warn)';
+                else if (n.node_type === 'ABYSSAL_FLOOR') stroke = 'var(--purple-abyss)';
+
+                if (isTarget) {
+                    fill = 'rgba(255, 183, 0, 0.3)';
+                    stroke = 'var(--amber-warn)';
+                }
+
+                dot.setAttribute('fill', fill);
+                dot.setAttribute('stroke', stroke);
+                dot.setAttribute('stroke-width', isTarget ? '3' : '2');
+                g.appendChild(dot);
+
+                // Labels
+                const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                txt.setAttribute('x', nx);
+                txt.setAttribute('y', ny - 14);
+                txt.setAttribute('fill', isTarget ? 'var(--amber-warn)' : 'var(--text-bright)');
+                txt.setAttribute('font-size', '11');
+                txt.setAttribute('font-weight', isTarget ? 'bold' : '600');
+                txt.setAttribute('text-anchor', 'middle');
+                txt.textContent = n.name;
+                g.appendChild(txt);
+
+                nodesLayer.appendChild(g);
+            });
+
+            // Player Submarine Icon
+            const myNode = nodeMap.get(gameState.player.node_id);
+            if (myNode) {
+                const px = 100 + myNode.x * 800;
+                const py = 80 + myNode.y * 640;
+
+                const subG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                subG.setAttribute('filter', 'url(#sub-glow)');
+
+                const sub = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                sub.setAttribute('cx', px);
+                sub.setAttribute('cy', py);
+                sub.setAttribute('r', '7');
+                sub.setAttribute('fill', 'var(--green-sonar)');
+                subG.appendChild(sub);
+
+                actorsLayer.appendChild(subG);
+            }
+
+            // Opponent Blown Cover Pin
+            if (oppBlown) {
+                const contact = gameState.opponent_intel.last_known_contact;
+                if (contact) {
+                    const oppNode = nodeMap.get(contact.node_id);
+                    if (oppNode) {
+                        const ox = 100 + oppNode.x * 800;
+                        const oy = 80 + oppNode.y * 640;
+
+                        const oppG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        const oCirc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        oCirc.setAttribute('cx', ox);
+                        oCirc.setAttribute('cy', oy);
+                        oCirc.setAttribute('r', '12');
+                        oCirc.setAttribute('fill', 'rgba(255, 59, 78, 0.4)');
+                        oCirc.setAttribute('stroke', 'var(--red-alert)');
+                        oCirc.setAttribute('stroke-width', '2');
+                        oppG.appendChild(oCirc);
+
+                        actorsLayer.appendChild(oppG);
+                    }
+                }
+            }
+        }
+
+        function renderActions() {
+            const isTurn = gameState.is_human_turn && !isWaitingForAI;
+            const legals = new Set((gameState.legal_actions || []).map(a => a.action_type));
+
+            document.getElementById('btn-card-move').disabled = !isTurn || !legals.has('MOVE');
+            document.getElementById('btn-card-control').disabled = !isTurn || !legals.has('SECURE');
+            document.getElementById('btn-card-torpedo').disabled = !isTurn || !legals.has('TORPEDO');
+            document.getElementById('btn-card-locate').disabled = !isTurn || !legals.has('ACTIVE_SONAR');
+            document.getElementById('btn-card-cover').disabled = !isTurn || !legals.has('DEEP_COVER');
+            document.getElementById('btn-card-pass').disabled = !isTurn;
+        }
+
+        function renderTicker() {
+            const evs = gameState.events || [];
+            if (evs.length > 0) {
+                const last = evs[evs.length - 1];
+                const tickEl = document.getElementById('latest-ticker');
+                const isAlert = last.action_type === 'TORPEDO' || (last.secret_message && last.secret_message.includes('ALERT'));
+                tickEl.className = isAlert ? 'ticker-bubble alert' : 'ticker-bubble';
+                tickEl.innerText = last.secret_message || last.public_message;
+            }
+        }
+
+        function startTargetedAction(type) {
+            if (currentAction === type) {
+                cancelTargeting();
+                return;
+            }
+
+            currentAction = type;
+            validTargets.clear();
+
+            const legals = gameState.legal_actions || [];
+            legals.filter(a => a.action_type === type).forEach(a => {
+                if (a.target_node !== null) validTargets.add(a.target_node);
+            });
+
+            document.querySelectorAll('.action-card').forEach(c => c.classList.remove('selected'));
+            if (type === 'MOVE') document.getElementById('btn-card-move').classList.add('selected');
+            else if (type === 'TORPEDO') document.getElementById('btn-card-torpedo').classList.add('selected');
+            else if (type === 'ACTIVE_SONAR') document.getElementById('btn-card-locate').classList.add('selected');
+
+            const banner = document.getElementById('targeting-banner');
+            const msg = document.getElementById('targeting-msg');
+            banner.classList.add('active');
+
+            if (type === 'MOVE') msg.innerText = 'TAP CONNECTED SECTOR TO MOVE';
+            else if (type === 'TORPEDO') msg.innerText = 'TAP SECTOR TO LAUNCH TORPEDO';
+            else if (type === 'ACTIVE_SONAR') msg.innerText = 'TAP SECTOR FOR SONAR SCAN (KEEPS COVER)';
+
+            renderMap();
+        }
+
+        function cancelTargeting() {
+            currentAction = null;
+            validTargets.clear();
+            document.querySelectorAll('.action-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('targeting-banner').classList.remove('active');
+            renderMap();
+        }
+
+        function onNodeSelected(nodeId) {
+            // Direct click-to-move if no action primed
+            if (!currentAction) {
+                const legals = gameState.legal_actions || [];
+                const canMoveThere = legals.some(a => a.action_type === 'MOVE' && a.target_node === nodeId);
+                if (canMoveThere) {
+                    executeDirectAction('MOVE', nodeId);
+                    return;
+                }
+            }
+
+            if (currentAction && validTargets.has(nodeId)) {
+                executeDirectAction(currentAction, nodeId);
+                cancelTargeting();
+            }
+        }
+
+        async function executeDirectAction(actionType, targetNode = null) {
+            cancelTargeting();
+
+            if (actionType === 'TORPEDO') playTorpedoLaunch();
+            else if (actionType === 'ACTIVE_SONAR') playSonarPing();
+
+            try {
+                const res = await fetch('/api/game/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action_type: actionType, target_node: targetNode }),
+                });
+                gameState = await res.json();
+                render();
+                checkAITurnTrigger();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function passTurn() {
+            cancelTargeting();
+            try {
+                const res = await fetch('/api/game/end_turn', { method: 'POST' });
+                gameState = await res.json();
+                render();
+                checkAITurnTrigger();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // --- Opponent Turn Pacing (Solves Infinite Moves & Janky Instant Returns) ---
+        async function checkAITurnTrigger() {
+            if (gameState.status === 'ONGOING' && !gameState.is_human_turn && !isWaitingForAI) {
+                isWaitingForAI = true;
+                const overlay = document.getElementById('opponent-overlay');
+                overlay.classList.add('active');
+
+                // Realistic atmospheric tactical pacing delay (650ms)
+                setTimeout(async () => {
+                    try {
+                        const res = await fetch('/api/game/ai_step', { method: 'POST' });
+                        gameState = await res.json();
+                        overlay.classList.remove('active');
+                        isWaitingForAI = false;
+                        render();
+                    } catch (err) {
+                        overlay.classList.remove('active');
+                        isWaitingForAI = false;
+                    }
+                }, 750);
+            }
+        }
+
+        function checkVictory() {
+            if (gameState.status !== 'ONGOING') {
+                const isWin = gameState.status === 'P0_WIN';
+                if (isWin) playExplosion();
+
+                setTimeout(() => {
+                    alert(`${isWin ? '🏆 VICTORY!' : '💥 DEFEAT'}\n\n${gameState.win_reason}`);
+                }, 300);
+            }
+        }
+
+        // --- Modals ---
+        function openMissionModal() {
+            const listEl = document.getElementById('modal-map-options');
+            listEl.innerHTML = '';
+            mapsList.forEach(m => {
+                const item = document.createElement('div');
+                item.className = `map-item-card ${m.id === chosenMap ? 'selected' : ''}`;
+                item.onclick = () => {
+                    document.querySelectorAll('.map-item-card').forEach(el => el.classList.remove('selected'));
+                    item.classList.add('selected');
+                    chosenMap = m.id;
+                };
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.8rem;">
+                        <span>${m.name}</span>
+                        <span style="color: var(--cyan-accent);">${m.region}</span>
+                    </div>
+                    <div style="font-size: 0.68rem; color: var(--text-dim); margin-top: 3px;">
+                        ${m.description} (${m.num_nodes} nodes)
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+            document.getElementById('modal-mission').classList.add('open');
+        }
+
+        function closeMissionModal() {
+            document.getElementById('modal-mission').classList.remove('open');
+        }
+
+        async function confirmMissionStart() {
+            const oppRadio = document.querySelector('input[name="modal-opponent"]:checked');
+            const oppType = oppRadio ? oppRadio.value : 'neural_net';
+
+            try {
+                const res = await fetch('/api/game/new', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ map_name: chosenMap, opponent_type: oppType }),
+                });
+                gameState = await res.json();
+                closeMissionModal();
+                cancelTargeting();
+                render();
+                playSonarPing();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await fetchMaps();
+            await fetchState();
+        });
+    </script>
+</body>
+</html>

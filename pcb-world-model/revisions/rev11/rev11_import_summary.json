@@ -1,0 +1,109 @@
+{
+  "revision": "rev11",
+  "timestamp_utc": "2026-11-16 23:34 UTC",
+  "total_elapsed_sec": 4.32,
+  "B10_step_enclosure_keychain": {
+    "benchmark_id": "B10",
+    "board": "step_enclosure_keychain",
+    "routed": "20/20",
+    "drc_errors": 0,
+    "z_collisions": 0,
+    "outline_vertices": 8,
+    "z_max_regions": 2,
+    "port_anchors": 3,
+    "dfm_status": "PASS",
+    "craftsmanship_score": 97.44,
+    "step_valid": true,
+    "elapsed_sec": 2.99,
+    "success": true
+  },
+  "B11_datasheet_pinout_ingest": {
+    "benchmark_id": "B11",
+    "board": "datasheet_pinout_ingest",
+    "part_number": "DRV8833",
+    "erc_errors": 0,
+    "erc_warnings": 0,
+    "u1_special_rules": [
+      "thermal_via_ep",
+      "high_di_dt_loop",
+      "kelvin_sense_pair"
+    ],
+    "routed": "16/16",
+    "drc_errors": 0,
+    "dfm_status": "PASS",
+    "craftsmanship_score": 99.96,
+    "elapsed_sec": 0.78,
+    "success": true
+  },
+  "B12_legacy_kicad_reoptimize": {
+    "benchmark_id": "B12",
+    "board": "legacy_kicad_reoptimize",
+    "locked_components": [
+      "J1",
+      "J2",
+      "MH1",
+      "MH2",
+      "U1"
+    ],
+    "lock_preservation_verified": true,
+    "before": {
+      "board_name": "legacy_kicad_reoptimize",
+      "layers": 2,
+      "routed_nets": 7,
+      "total_nets": 7,
+      "drc_errors": 97,
+      "dfm_violations": 27,
+      "acid_trap_count": 6,
+      "asymmetric_pad_entries": 21,
+      "screw_stress_mlcc_violations": 0,
+      "silkscreen_pad_overlaps": 0,
+      "teardrop_count": 0,
+      "craftsmanship_score": 0.0,
+      "via_count": 40,
+      "wirelength_mm": 511.78,
+      "hpwl_mm": 346.16,
+      "z_collisions": 0,
+      "sw_loop_inductance_nh": 73.97,
+      "max_dc_resistance_mohm": 249.94
+    },
+    "after": {
+      "board_name": "legacy_kicad_reoptimize",
+      "layers": 2,
+      "routed_nets": 7,
+      "total_nets": 7,
+      "drc_errors": 0,
+      "dfm_violations": 0,
+      "acid_trap_count": 0,
+      "asymmetric_pad_entries": 0,
+      "screw_stress_mlcc_violations": 0,
+      "silkscreen_pad_overlaps": 0,
+      "teardrop_count": 35,
+      "craftsmanship_score": 99.4,
+      "via_count": 5,
+      "wirelength_mm": 128.8,
+      "hpwl_mm": 246.66,
+      "z_collisions": 0,
+      "sw_loop_inductance_nh": 9.75,
+      "max_dc_resistance_mohm": 43.55
+    },
+    "via_reduction_pct": 87.5,
+    "wirelength_reduction_pct": 74.8,
+    "inductance_reduction_pct": 86.8,
+    "elapsed_sec": 0.32,
+    "success": true
+  },
+  "schematic_auto_erc_demo": {
+    "format": "atopile",
+    "components_after_fix": 3,
+    "fixes_applied": [
+      {
+        "code": "MISSING_DECOUPLING_CAP",
+        "injected": "C1",
+        "value": "100nF",
+        "target": "u_mcu"
+      }
+    ],
+    "post_fix_passed": true
+  },
+  "all_passed": true
+}

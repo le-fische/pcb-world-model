@@ -1,0 +1,21 @@
+{
+  "DESIGN_NAME": "quad_ws2812_spi",
+  "VERILOG_FILES": [
+    "dir::src/quad_ws2812_spi.v"
+  ],
+  "CLOCK_PORT": "clk",
+  "CLOCK_PERIOD": 20.83,
+  "PDK": "sky130A",
+  "FP_SIZING": "absolute",
+  "DIE_AREA": [
+    0,
+    0,
+    750.0,
+    750.0
+  ],
+  "FP_CORE_UTIL": 55,
+  "PL_TARGET_DENSITY": 0.6,
+  "RUN_KLAYOUT_XOR": true,
+  "RUN_MAGIC_DRC": true,
+  "RUN_LVS": true
+}

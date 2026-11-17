@@ -1,0 +1,47 @@
+{
+  "B6_wearable_oled_keychain_26x26": {
+    "success": true,
+    "routed": "20/20",
+    "drc_errors": 0,
+    "hpwl_mm": 358.44,
+    "wirelength_mm": 361.59,
+    "vias": 41,
+    "elapsed_sec": 2.194,
+    "thickness_mm": 0.8,
+    "single_sided": true,
+    "si_status": "PASS"
+  },
+  "B7_non_tech_wearable_keychain": {
+    "initial_gate_status": "needs_input",
+    "questions_asked": 3,
+    "erc_errors": 0,
+    "success": true,
+    "routed": "20/20",
+    "drc_errors": 0,
+    "hpwl_mm": 358.44,
+    "wirelength_mm": 361.59,
+    "vias": 41,
+    "elapsed_sec": 2.139,
+    "si_status": "PASS"
+  },
+  "B8_impossible_box_negotiation": {
+    "rejected_status": "tradeoff_required",
+    "rejected_utilization_pct": 452.8,
+    "tradeoff_options": [
+      "expand_board",
+      "upgrade_4layer",
+      "double_sided",
+      "shrink_passives"
+    ],
+    "expanded_size_mm": "95.0x90.0",
+    "expanded_utilization_pct": 29.9,
+    "success": true,
+    "routed": "19/19",
+    "drc_errors": 0,
+    "hpwl_mm": 844.19,
+    "wirelength_mm": 737.66,
+    "vias": 14,
+    "elapsed_sec": 1.945,
+    "si_status": "PASS"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "revision": "rev12",
+  "timestamp_utc": "2026-11-16 23:59 UTC",
+  "total_elapsed_sec": 3.23,
+  "B13_hdi_fpga_bga_fanout_8l": {
+    "benchmark_id": "B13",
+    "board": "hdi_fpga_bga_fanout_8l",
+    "stackup": "8L (2+4+2)",
+    "max_lamination_cycles": 2,
+    "routed_nets": 23,
+    "total_nets": 23,
+    "routed": "23/23",
+    "drc_errors": 0,
+    "wirelength_mm": 369.22,
+    "via_count": 112,
+    "microvia_count": 95,
+    "buried_core_via_count": 7,
+    "through_via_count": 10,
+    "stacked_microvia_count": 0,
+    "illegal_skip_via_count": 0,
+    "min_observed_stagger_mm": 0.2828,
+    "layers_used": [
+      "F.Cu",
+      "In1.GND",
+      "In2.SIG1",
+      "In5.SIG2",
+      "In6.GND3",
+      "B.Cu"
+    ],
+    "si_status": "PASS",
+    "dfm_status": "PASS",
+    "craftsmanship_score": 98.19,
+    "step_valid": true,
+    "elapsed_sec": 3.12,
+    "success": true
+  },
+  "all_passed": true
+}

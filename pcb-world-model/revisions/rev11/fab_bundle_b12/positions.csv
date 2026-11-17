@@ -1,0 +1,13 @@
+Designator,Val,Package,Mid X,Mid Y,Rotation,Layer
+C1,22uF_IN,C_1206_3216Metric,20.5000mm,31.5000mm,90,Top
+C2,47uF_OUT,C_1206_3216Metric,36.0000mm,26.5000mm,90,Top
+C3,100nF_BST,C_0603_1608Metric,21.0000mm,14.5000mm,0,Top
+D1,SS34,D_SMA,21.0000mm,38.0000mm,90,Top
+J1,VIN_12V,TerminalBlock_bornier-3_P5.08mm,6.0000mm,25.0000mm,0,Top
+J2,VOUT_5V,TerminalBlock_bornier-2_P5.08mm,44.0000mm,25.0000mm,0,Top
+L1,10uH,L_6.3x6.3_H3,34.0000mm,18.0000mm,0,Top
+MH1,MH_2.0mm,MountingHole_2.0mm_M2.0_NPTH,4.0000mm,4.0000mm,0,Top
+MH2,MH_2.0mm,MountingHole_2.0mm_M2.0_NPTH,46.0000mm,46.0000mm,0,Top
+R1,100k,R_0603_1608Metric,30.0000mm,27.5000mm,180,Top
+R2,18.7k,R_0603_1608Metric,28.0000mm,34.0000mm,90,Top
+U1,TPS54302,SOIC-8_3.9x4.9mm_P1.27mm,21.0000mm,24.0000mm,0,Top

@@ -1,0 +1,14 @@
+Comment,Designator,Footprint,Quantity
+10uF_IN,C1,Capacitor_SMD:C_0805_2012Metric,1
+100nF_MCU,C2,Capacitor_SMD:C_0805_2012Metric,1
+100nF_SENS,C3,Capacitor_SMD:C_0805_2012Metric,1
+STAT_LED1,D1,LED_SMD:LED_0805_2012Metric,1
+STAT_LED2,D2,LED_SMD:LED_0805_2012Metric,1
+USB_HOST_HDR,J1,Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical,1
+4.7k_SDA,R1,Resistor_SMD:R_0603_1608Metric,1
+4.7k_SCL,R2,Resistor_SMD:R_0603_1608Metric,1
+1k_LED1,R3,Resistor_SMD:R_0603_1608Metric,1
+1k_LED2,R4,Resistor_SMD:R_0603_1608Metric,1
+RP2040_CORE,U1,Package_SO:SOIC-8_3.9x4.9mm_P1.27mm,1
+IMU_I2C,U2,Package_TO_SOT_SMD:SOT-23-6,1
+AP2112K-3.3,U3,Package_TO_SOT_SMD:SOT-23-5,1

@@ -1,0 +1,12 @@
+Comment,Designator,Footprint,Quantity
+100nF,"C1,C2,C3,C4",Capacitor_SMD:C_0402_1005Metric,4
+STAT_LED,D1,LED_SMD:LED_0603_1608Metric,1
+HS_BUS_HDR,J1,Connector_PinHeader_2.54mm:PinHeader_1x10_P2.54mm_Horizontal,1
+SPI_JTAG_HDR,J2,Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical,1
+10k_CS,R1,Resistor_SMD:R_0402_1005Metric,1
+330R_LED,R2,Resistor_SMD:R_0402_1005Metric,1
+10k_RST,R3,Resistor_SMD:R_0402_1005Metric,1
+10k_RX,R4,Resistor_SMD:R_0402_1005Metric,1
+ECP5-BGA64,U1,Package_BGA:BGA-64_7.2x7.2mm_Layout8x8_P0.8mm,1
+W25Q16_QSPI,U2,Package_SO:SOIC-8_3.9x4.9mm_P1.27mm,1
+25MHz_OSC,Y1,Crystal:Crystal_SMD_3225,1

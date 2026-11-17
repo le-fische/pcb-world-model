@@ -1,0 +1,89 @@
+{
+  "timestamp_utc": "2026-11-16 05:52 UTC",
+  "boards": [
+    {
+      "board": "mcu_sensor_node",
+      "routed_nets": 8,
+      "total_nets": 8,
+      "completion_pct": 100.0,
+      "drc_errors": 0,
+      "hpwl_mm": 293.49,
+      "wirelength_mm": 198.32,
+      "vias": 4,
+      "iterations": 1,
+      "critic_v": 0.5071,
+      "elapsed_sec": 2.53,
+      "composite_score": 99.11,
+      "success": true
+    },
+    {
+      "board": "buck_converter",
+      "routed_nets": 7,
+      "total_nets": 7,
+      "completion_pct": 100.0,
+      "drc_errors": 0,
+      "hpwl_mm": 224.06,
+      "wirelength_mm": 143.79,
+      "vias": 2,
+      "iterations": 1,
+      "critic_v": 0.6048,
+      "elapsed_sec": 1.66,
+      "composite_score": 99.56,
+      "success": true
+    },
+    {
+      "board": "usb_uart_bridge",
+      "routed_nets": 8,
+      "total_nets": 8,
+      "completion_pct": 100.0,
+      "drc_errors": 0,
+      "hpwl_mm": 254.91,
+      "wirelength_mm": 139.12,
+      "vias": 0,
+      "iterations": 1,
+      "critic_v": 0.5614,
+      "elapsed_sec": 1.82,
+      "composite_score": 100.0,
+      "success": true
+    },
+    {
+      "board": "rp2040_minimal",
+      "routed_nets": 12,
+      "total_nets": 12,
+      "completion_pct": 100.0,
+      "drc_errors": 0,
+      "hpwl_mm": 320.48,
+      "wirelength_mm": 256.64,
+      "vias": 2,
+      "iterations": 1,
+      "critic_v": 0.6195,
+      "elapsed_sec": 3.06,
+      "composite_score": 99.56,
+      "success": true
+    },
+    {
+      "board": "macropad_matrix",
+      "routed_nets": 9,
+      "total_nets": 9,
+      "completion_pct": 100.0,
+      "drc_errors": 0,
+      "hpwl_mm": 263.69,
+      "wirelength_mm": 225.48,
+      "vias": 2,
+      "iterations": 1,
+      "critic_v": 0.5904,
+      "elapsed_sec": 1.81,
+      "composite_score": 99.56,
+      "success": true
+    }
+  ],
+  "aggregate": {
+    "routed_str": "44/44 (100.0%)",
+    "total_drc_errors": 0,
+    "mean_hpwl_mm": 271.33,
+    "mean_wirelength_mm": 192.67,
+    "total_vias": 10,
+    "total_elapsed_sec": 10.89,
+    "mean_composite_score": 99.56
+  }
+}

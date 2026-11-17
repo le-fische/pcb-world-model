@@ -1,0 +1,46 @@
+{
+  "mcu_sensor_node": {
+    "routed": "8/8",
+    "drc_errors": 0,
+    "elapsed_sec": 0.52,
+    "step_export_ms": 1.17,
+    "step_size_kb": 116.7,
+    "step_valid": true,
+    "manifold_solids": 11,
+    "cylindrical_holes": 6,
+    "dangling_refs": 0
+  },
+  "wearable_oled_keychain_26x26": {
+    "routed": "20/20",
+    "drc_errors": 0,
+    "elapsed_sec": 2.11,
+    "step_export_ms": 2.23,
+    "step_size_kb": 277.4,
+    "step_valid": true,
+    "manifold_solids": 28,
+    "cylindrical_holes": 2,
+    "dangling_refs": 0
+  },
+  "flight_controller_50": {
+    "routed": "43/43",
+    "drc_errors": 0,
+    "elapsed_sec": 3.25,
+    "step_export_ms": 4.33,
+    "step_size_kb": 543.5,
+    "step_valid": true,
+    "manifold_solids": 51,
+    "cylindrical_holes": 23,
+    "dangling_refs": 0
+  },
+  "fpga_custom_protocol_bridge": {
+    "routed": "46/46",
+    "drc_errors": 0,
+    "elapsed_sec": 3.91,
+    "step_export_ms": 2.66,
+    "step_size_kb": 299.9,
+    "step_valid": true,
+    "manifold_solids": 25,
+    "cylindrical_holes": 34,
+    "dangling_refs": 0
+  }
+}

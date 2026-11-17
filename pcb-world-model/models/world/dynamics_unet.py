@@ -125,7 +125,43 @@ class WorldModelUNet(nn.Module):
         value = self.value_head(val_feat)
         return congestion, value
 
-    @torch.no_grad()
+    @torch.inference_mode()
+    def predict(self, state_tensor: torch.Tensor) -> tuple[np.ndarray, float]:
+        """Single forward pass returning `(congestion_map [2, H, W], value)`."""
+        self.eval()
+        device = next(self.parameters()).device
+        x = state_tensor.to(device)
+        if x.ndim == 3:
+            x = x.unsqueeze(0)
+        congestion, value = self.forward(x)
+        return (
+            congestion.squeeze(0).cpu().numpy().astype(np.float32),
+            float(value.squeeze().item()),
+        )
+
+    @torch.inference_mode()
+    def predict_batch(self, state_tensors: list[torch.Tensor]) -> tuple[np.ndarray, list[float]]:
+        """Evaluate a batch of `[7, H, W]` state tensors via optimal device path."""
+        if not state_tensors:
+            return (np.zeros((0, 2, 0, 0), dtype=np.float32), [])
+        self.eval()
+        device = next(self.parameters()).device
+        if device.type == "mps":
+            congs: list[np.ndarray] = []
+            vals: list[float] = []
+            for s_t in state_tensors:
+                c, v = self.predict(s_t)
+                congs.append(c)
+                vals.append(v)
+            return (np.stack(congs, axis=0), vals)
+        batch = torch.stack(state_tensors, dim=0).to(device)
+        congestion, values = self.forward(batch)
+        return (
+            congestion.cpu().numpy().astype(np.float32),
+            [float(v) for v in values.squeeze(-1).cpu().tolist()],
+        )
+
+    @torch.inference_mode()
     def predict_value(self, state_tensor: torch.Tensor) -> float:
         """Predict scalar routability probability V(S_t) in [0, 1]."""
         self.eval()
@@ -136,7 +172,7 @@ class WorldModelUNet(nn.Module):
         _, value = self.forward(x)
         return float(value.squeeze().item())
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def predict_congestion(self, state_tensor: torch.Tensor) -> np.ndarray:
         """Predict 2-layer congestion heatmap M_{t+1} of shape [2, H, W] in [0, 1]."""
         self.eval()

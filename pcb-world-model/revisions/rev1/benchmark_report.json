@@ -1,0 +1,59 @@
+{
+  "timestamp_utc": "2026-11-16 04:37 UTC",
+  "boards": [
+    {
+      "board": "mcu_sensor_node",
+      "routed_nets": 8,
+      "total_nets": 8,
+      "completion_pct": 100.0,
+      "drc_errors": 0,
+      "hpwl_mm": 314.73,
+      "wirelength_mm": 278.63,
+      "vias": 22,
+      "iterations": 2,
+      "critic_v": 0.4772,
+      "elapsed_sec": 3.37,
+      "composite_score": 95.11,
+      "success": true
+    },
+    {
+      "board": "buck_converter",
+      "routed_nets": 7,
+      "total_nets": 7,
+      "completion_pct": 100.0,
+      "drc_errors": 0,
+      "hpwl_mm": 225.06,
+      "wirelength_mm": 143.06,
+      "vias": 5,
+      "iterations": 1,
+      "critic_v": 0.6034,
+      "elapsed_sec": 1.82,
+      "composite_score": 98.89,
+      "success": true
+    },
+    {
+      "board": "usb_uart_bridge",
+      "routed_nets": 8,
+      "total_nets": 8,
+      "completion_pct": 100.0,
+      "drc_errors": 0,
+      "hpwl_mm": 257.41,
+      "wirelength_mm": 139.53,
+      "vias": 0,
+      "iterations": 1,
+      "critic_v": 0.5579,
+      "elapsed_sec": 1.89,
+      "composite_score": 100.0,
+      "success": true
+    }
+  ],
+  "aggregate": {
+    "routed_str": "23/23 (100.0%)",
+    "total_drc_errors": 0,
+    "mean_hpwl_mm": 265.73,
+    "mean_wirelength_mm": 187.07,
+    "total_vias": 27,
+    "total_elapsed_sec": 7.09,
+    "mean_composite_score": 98.0
+  }
+}

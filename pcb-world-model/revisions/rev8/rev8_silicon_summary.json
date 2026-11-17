@@ -1,0 +1,74 @@
+{
+  "revision": "rev8",
+  "benchmark_b1_b5": {
+    "seeded": {
+      "routed": "44/44 (100.0%)",
+      "drc_errors": 0,
+      "total_vias": 10,
+      "elapsed_sec": 1.72,
+      "mean_composite_score": 99.56
+    },
+    "blind": {
+      "routed": "44/44 (100.0%)",
+      "drc_errors": 0,
+      "total_vias": 16,
+      "elapsed_sec": 1.77,
+      "mean_composite_score": 99.29
+    }
+  },
+  "B9_fpga_custom_protocol_bridge": {
+    "board": "fpga_custom_protocol_bridge",
+    "dimensions_mm": "80x64",
+    "layers": 4,
+    "fpga_target": "Lattice_iCE40UP5K-SG48",
+    "host_mcu": "ESP32-C3FN4",
+    "rtl_module": "quad_ws2812_spi",
+    "simulator": "iverilog+vvp",
+    "lint_tool": "verilator",
+    "simulation_passed": true,
+    "simulation_checks_passed": 5,
+    "lint_passed": true,
+    "erc_errors": 0,
+    "achieved_fmax_mhz": 80.03,
+    "target_clock_mhz": 48.0,
+    "timing_passed": true,
+    "crossings_before": 147,
+    "crossings_after": 11,
+    "crossing_reduction_pct": 92.5,
+    "pin_swaps_count": 29,
+    "ab_comparison": {
+      "without_pin_swap": {
+        "routed": "42/46",
+        "drc_errors": 0,
+        "hpwl_mm": 1697.51,
+        "wirelength_mm": 1209.18,
+        "vias": 131,
+        "max_rdc_mohm": 199.896,
+        "elapsed_sec": 11.35,
+        "success": false
+      },
+      "with_rev8_joint_pcf_codesign": {
+        "routed": "46/46",
+        "drc_errors": 0,
+        "hpwl_mm": 1569.54,
+        "wirelength_mm": 993.61,
+        "vias": 85,
+        "max_rdc_mohm": 106.79,
+        "elapsed_sec": 4.29,
+        "si_status": "PASS",
+        "success": true
+      }
+    },
+    "openlane_asic": {
+      "pdk": "sky130A",
+      "package": "QFN-48",
+      "gds_file": "fab_bundle_b9/asic/quad_ws2812_spi.gds",
+      "drc_clean": true,
+      "lvs_clean": true
+    }
+  },
+  "pytest_suite": {
+    "passed": 52,
+    "total": 52
+  }
+}
